@@ -7,6 +7,7 @@ repos:
       - id: check-ast
       - id: check-case-conflict
       - id: check-json
+        exclude: ^(frontend/tsconfig.*\.json|.*/\.vscode/.*\.json)$
       - id: check-toml
       - id: check-yaml
       - id: end-of-file-fixer
@@ -18,6 +19,11 @@ repos:
         files: ^backend/
       - id: ruff-format # formatter
         files: ^backend/
+  - repo: https://gitlab.com/bmares/check-json5
+    rev: v1.0.1
+    hooks:
+      - id: check-json5
+        files: ^(frontend/tsconfig.*\.json|.*/\.vscode/.*\.json)$
   - repo: local
     hooks:
       - id: pyright
