@@ -7,26 +7,37 @@ repos:
     rev: v6.0.0
     hooks:
       - id: trailing-whitespace
+        stages: [pre-commit]
       - id: check-added-large-files
+        stages: [pre-commit]
       - id: check-ast
+        stages: [pre-commit]
       - id: check-case-conflict
+        stages: [pre-commit]
       - id: check-json
+        stages: [pre-commit]
         exclude: ^(frontend/tsconfig.*\.json|.*/\.vscode/.*\.json)$
       - id: check-toml
+        stages: [pre-commit]
       - id: check-yaml
+        stages: [pre-commit]
       - id: end-of-file-fixer
+        stages: [pre-commit]
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.12
     hooks:
       - id: ruff-check # linter
         args: [--fix]
+        stages: [pre-commit]
         files: ^backend/
       - id: ruff-format # formatter
+        stages: [pre-commit]
         files: ^backend/
   - repo: https://gitlab.com/bmares/check-json5
     rev: v1.0.1
     hooks:
       - id: check-json5
+        stages: [pre-commit]
         files: ^(frontend/tsconfig.*\.json|.*/\.vscode/.*\.json)$
   - repo: local
     hooks:
@@ -34,6 +45,7 @@ repos:
         name: pyright
         entry: bash -c 'cd backend && uv run pyright'
         language: system
+        stages: [pre-commit]
         files: ^backend/
         types: [python]
         pass_filenames: false
@@ -41,18 +53,21 @@ repos:
         name: frontend format
         entry: pnpm --dir frontend format
         language: system
+        stages: [pre-commit]
         files: ^frontend/src/
         pass_filenames: false
       - id: frontend-lint
         name: frontend lint
         entry: pnpm --dir frontend lint
         language: system
+        stages: [pre-commit]
         files: ^frontend/
         pass_filenames: false
       - id: frontend-type-check
         name: frontend type-check
         entry: pnpm --dir frontend type-check
         language: system
+        stages: [pre-commit]
         files: ^frontend/
         pass_filenames: false
       - id: commit-message-check
