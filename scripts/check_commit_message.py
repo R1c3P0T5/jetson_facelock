@@ -18,18 +18,6 @@ ALLOWED_TYPES = [
     "style",
 ]
 
-ALLOWED_VERBS = {
-    "add",
-    "fix",
-    "update",
-    "remove",
-    "refactor",
-    "rename",
-    "improve",
-    "simplify",
-    "revert",
-}
-
 VAGUE_SUBJECTS = {"misc changes", "stuff", "updates", "fixes"}
 HEADER_PATTERN = re.compile(
     r"^(?P<type>[a-z]+)(?:\((?P<scope>[a-z0-9_-]+)\))?:\s(?P<subject>.+)$"
@@ -73,9 +61,15 @@ def validate_commit_message(message: str) -> dict[str, object]:
         errors.append("Commit subject must not end with punctuation.")
 
     first_word = subject.split()[0]
-    if first_word not in ALLOWED_VERBS:
+    if re.fullmatch(r"[a-z][a-z0-9-]*", first_word) is None:
         errors.append(
-            "Commit subject must start with a lowercase verb such as add, fix, update, remove, refactor, rename, improve, simplify, or revert."
+            "Commit subject must start with a lowercase imperative verb (ASCII letters), e.g. add, fix, update, remove, refactor."
+        )
+    elif (first_word.endswith("ed") and len(first_word) > 4) or (
+        first_word.endswith("ing") and len(first_word) > 5
+    ):
+        errors.append(
+            "Commit subject should use imperative mood (e.g. 'add', not 'added' or 'adding')."
         )
 
     return {"ok": not errors, "errors": errors}

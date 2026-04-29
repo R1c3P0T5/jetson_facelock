@@ -43,7 +43,20 @@ class ValidateCommitMessageTest(unittest.TestCase):
             {
                 "ok": False,
                 "errors": [
-                    "Commit subject must start with a lowercase verb such as add, fix, update, remove, refactor, rename, improve, simplify, or revert.",
+                    "Commit subject must start with a lowercase imperative verb (ASCII letters), e.g. add, fix, update, remove, refactor.",
+                ],
+            },
+        )
+
+    def test_rejects_past_tense_or_gerund_subject_start(self):
+        module = load_module()
+
+        self.assertEqual(
+            module.validate_commit_message("feat: added login form"),
+            {
+                "ok": False,
+                "errors": [
+                    "Commit subject should use imperative mood (e.g. 'add', not 'added' or 'adding')."
                 ],
             },
         )
