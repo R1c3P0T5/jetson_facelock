@@ -8,9 +8,9 @@ SCRIPT_PATH = Path(__file__).with_name("check_commit_message.py")
 
 def load_module():
     spec = spec_from_file_location("check_commit_message", SCRIPT_PATH)
-    module = module_from_spec(spec)
     assert spec is not None
     assert spec.loader is not None
+    module = module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
 
