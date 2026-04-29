@@ -35,6 +35,17 @@ class ValidateCommitMessageTest(unittest.TestCase):
             },
         )
 
+    def test_rejects_empty_subject(self):
+        module = load_module()
+
+        self.assertEqual(
+            module.validate_commit_message("feat:    "),
+            {
+                "ok": False,
+                "errors": ["Commit subject must not be empty."],
+            },
+        )
+
     def test_rejects_uppercase_subject_start(self):
         module = load_module()
 

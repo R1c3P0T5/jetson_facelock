@@ -25,7 +25,9 @@ HEADER_PATTERN = re.compile(
 
 
 def validate_commit_message(message: str) -> dict[str, object]:
-    first_line = message.splitlines()[0].strip() if message.splitlines() else ""
+    # Keep trailing whitespace so headers like "feat:   " still match and can be
+    # validated as an empty subject after normalization.
+    first_line = message.splitlines()[0].lstrip() if message.splitlines() else ""
     match = HEADER_PATTERN.match(first_line)
 
     if match is None:
@@ -37,7 +39,7 @@ def validate_commit_message(message: str) -> dict[str, object]:
         }
 
     commit_type = match.group("type")
-    subject = match.group("subject")
+    subject = match.group("subject").strip()
 
     if commit_type not in ALLOWED_TYPES:
         return {
@@ -45,6 +47,12 @@ def validate_commit_message(message: str) -> dict[str, object]:
             "errors": [
                 "Commit type must be one of: feat, fix, chore, docs, refactor, test, ci, build, perf, style."
             ],
+        }
+
+    if not subject:
+        return {
+            "ok": False,
+            "errors": ["Commit subject must not be empty."],
         }
 
     if subject in VAGUE_SUBJECTS:
