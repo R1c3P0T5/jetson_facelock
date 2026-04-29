@@ -1,0 +1,53 @@
+name: commit-message
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  lint-commits:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Determine commit range
+        id: range
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            range="${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}"
+          elif [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ]; then
+            range="${{ github.sha }}"
+          else
+            range="${{ github.event.before }}..${{ github.sha }}"
+          fi
+
+          echo "range=$range" >> "$GITHUB_OUTPUT"
+
+      - name: Validate commit messages
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          range='${{ steps.range.outputs.range }}'
+
+          if [ "$range" = "${{ github.sha }}" ]; then
+            commits='${{ github.sha }}'
+          else
+            commits=$(git rev-list --reverse "$range")
+          fi
+
+          for sha in $commits; do
+            echo "Checking $sha"
+            git show -s --format=%B "$sha" > /tmp/commit-msg.txt
+            python3 scripts/check_commit_message.py /tmp/commit-msg.txt
+          done
