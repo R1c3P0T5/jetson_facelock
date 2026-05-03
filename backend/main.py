@@ -1,13 +1,13 @@
 from fastapi import FastAPI
 
+from src.auth.router import router as auth_router
+
+
 app = FastAPI()
 
-
-@app.get("/")
-async def read_root():
-    return {"Hello": "World"}
+app.include_router(auth_router)
 
 
-@app.get("/items/{item_id}")
-async def read_item(item_id: int, q: str | None = None):
-    return {"item_id": item_id, "q": q}
+@app.get("/health")
+async def health_check() -> dict[str, str]:
+    return {"status": "ok"}
