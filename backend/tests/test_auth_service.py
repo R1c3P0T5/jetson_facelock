@@ -8,7 +8,7 @@ from sqlmodel import SQLModel
 
 from src.auth.schemas import UserLoginRequest, UserRegisterRequest
 from src.auth.utils import decode_token, hash_password
-from src.core.database import engine
+import src.core.database as db
 from src.core.exceptions import (
     InactiveUserError,
     InvalidCredentialsError,
@@ -20,13 +20,18 @@ from src.users.models import User
 
 @pytest_asyncio.fixture
 async def database_session() -> AsyncGenerator[AsyncSession, None]:
-    from src.core.database import async_session
+    await db.init_db()
+    assert db.engine is not None
+    assert db.async_session is not None
 
-    async with engine.begin() as connection:
+    async with db.engine.begin() as connection:
         await connection.run_sync(SQLModel.metadata.create_all)
 
-    async with async_session() as session:
-        yield session
+    async with db.async_session() as session:
+        try:
+            yield session
+        finally:
+            await db.close_db()
 
 
 @pytest.mark.asyncio
