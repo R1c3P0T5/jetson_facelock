@@ -9,7 +9,7 @@
 uvx pre-commit install --install-hooks
 ```
 
-這會同時安裝 `pre-commit` 與 `commit-msg` hooks，所以除了既有的程式碼檢查外，commit message 也會在 `git commit` 時一起驗證。
+這會同時安裝 `pre-commit` 與 `commit-msg` hooks，所以除了既有的程式碼檢查外，commit message 也會在 `git commit` 時一起驗證。Commit message 寫法請參考 [Commit Message 規範](./commit-msg.md)。
 
 安裝完後，可以先跑一次全域的 pre-commit，確認功能正常。
 
