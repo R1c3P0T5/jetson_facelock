@@ -24,7 +24,7 @@ def test_get_settings_returns_cached_settings_from_environment(
 
 
 def test_settings_defaults_without_env_file() -> None:
-    settings = Settings(SECRET_KEY="b" * 32, DEBUG=False)
+    settings = Settings(SECRET_KEY="b" * 32, DEBUG=False, _env_file=None)  # type: ignore[call-arg]
 
     assert settings.DEBUG is False
     assert settings.JWT_ALGORITHM == "HS256"
@@ -53,10 +53,14 @@ def test_settings_requires_default_admin_username_and_password_together() -> Non
         ValueError,
         match="DEFAULT_ADMIN_USERNAME and DEFAULT_ADMIN_PASSWORD must be set together",
     ):
-        Settings(SECRET_KEY="d" * 32, DEFAULT_ADMIN_USERNAME="admin")
+        Settings(SECRET_KEY="d" * 32, DEFAULT_ADMIN_USERNAME="admin", _env_file=None)  # type: ignore[call-arg]
 
     with pytest.raises(
         ValueError,
         match="DEFAULT_ADMIN_USERNAME and DEFAULT_ADMIN_PASSWORD must be set together",
     ):
-        Settings(SECRET_KEY="e" * 32, DEFAULT_ADMIN_PASSWORD="AdminPassword123")
+        Settings(
+            SECRET_KEY="e" * 32,
+            DEFAULT_ADMIN_PASSWORD="AdminPassword123",
+            _env_file=None,  # type: ignore[call-arg]
+        )
