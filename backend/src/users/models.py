@@ -1,7 +1,13 @@
 from datetime import datetime
+from enum import Enum
 from uuid import UUID, uuid4
 
 from sqlmodel import Field, SQLModel
+
+
+class UserRole(str, Enum):
+    USER = "user"
+    ADMIN = "admin"
 
 
 class User(SQLModel, table=True):
@@ -13,7 +19,7 @@ class User(SQLModel, table=True):
     password_hash: str = Field(nullable=False)
     full_name: str = Field(nullable=False)
     face_embedding: bytes | None = None
-    role: str = Field(default="user", nullable=False)
+    role: UserRole = Field(default=UserRole.USER, nullable=False)
     is_active: bool = Field(default=True, nullable=False)
     created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
     updated_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)

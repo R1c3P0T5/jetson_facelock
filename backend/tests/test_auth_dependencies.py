@@ -9,7 +9,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from src.auth.utils import create_access_token
 import src.core.database as db
 from src.core.exceptions import InvalidTokenError, PermissionDeniedError
-from src.users.models import User
+from src.users.models import User, UserRole
 
 
 @pytest_asyncio.fixture
@@ -97,13 +97,13 @@ async def test_get_admin_user_requires_admin_role() -> None:
         username="admin",
         password_hash="hash",
         full_name="Admin User",
-        role="admin",
+        role=UserRole.ADMIN,
     )
     user = User(
         username="regular",
         password_hash="hash",
         full_name="Regular User",
-        role="user",
+        role=UserRole.USER,
     )
 
     assert await get_admin_user(admin) is admin
