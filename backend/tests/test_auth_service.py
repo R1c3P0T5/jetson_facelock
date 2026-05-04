@@ -14,7 +14,7 @@ from src.core.exceptions import (
     UserNotFoundError,
     UsernameAlreadyExistsError,
 )
-from src.users.models import User
+from src.users.models import User, UserRole
 
 
 @pytest_asyncio.fixture
@@ -49,7 +49,7 @@ async def test_register_user_hashes_password_and_persists_user(
     assert user.id is not None
     assert user.username == username
     assert user.password_hash != request.password
-    assert user.role == "user"
+    assert user.role == UserRole.USER
     assert user.is_active is True
 
 

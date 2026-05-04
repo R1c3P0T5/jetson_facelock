@@ -8,7 +8,7 @@ from sqlmodel import select
 from src.auth.utils import decode_token
 from src.core.database import SessionDep
 from src.core.exceptions import InvalidTokenError, PermissionDeniedError
-from src.users.models import User
+from src.users.models import User, UserRole
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
@@ -46,7 +46,7 @@ async def get_admin_user(
 ) -> User:
     """Verify current user has the admin role."""
 
-    if current_user.role != "admin":
+    if current_user.role != UserRole.ADMIN:
         raise PermissionDeniedError()
 
     return current_user

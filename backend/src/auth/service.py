@@ -18,7 +18,7 @@ from src.core.exceptions import (
     UserNotFoundError,
     UsernameAlreadyExistsError,
 )
-from src.users.models import User
+from src.users.models import User, UserRole
 
 
 async def register_user(
@@ -33,7 +33,7 @@ async def register_user(
         email=request.email,
         password_hash=hash_password(request.password),
         full_name=request.full_name,
-        role="user",
+        role=UserRole.USER,
         is_active=True,
     )
 

@@ -3,6 +3,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
+from src.users.models import UserRole
+
 
 class UserRegisterRequest(BaseModel):
     """User registration request."""
@@ -27,7 +29,7 @@ class UserResponse(BaseModel):
     username: str
     email: str | None = None
     full_name: str
-    role: str
+    role: UserRole
     is_active: bool
     created_at: datetime
 
