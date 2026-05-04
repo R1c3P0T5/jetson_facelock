@@ -1,13 +1,10 @@
-from collections.abc import AsyncGenerator
 from uuid import uuid4
 
 import pytest
-import pytest_asyncio
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.auth.schemas import UserLoginRequest, UserRegisterRequest
 from src.auth.utils import decode_token, hash_password
-import src.core.database as db
 from src.core.exceptions import (
     InactiveUserError,
     InvalidCredentialsError,
@@ -15,19 +12,6 @@ from src.core.exceptions import (
     UsernameAlreadyExistsError,
 )
 from src.users.models import User, UserRole
-
-
-@pytest_asyncio.fixture
-async def database_session() -> AsyncGenerator[AsyncSession, None]:
-    await db.init_db()
-    await db.create_db_and_tables()
-
-    assert db.async_session is not None
-    async with db.async_session() as session:
-        try:
-            yield session
-        finally:
-            await db.close_db()
 
 
 @pytest.mark.asyncio

@@ -1,27 +1,11 @@
-from collections.abc import AsyncGenerator
 from uuid import uuid4
 
 import pytest
-import pytest_asyncio
 from fastapi.routing import APIRoute
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.auth.schemas import LoginResponse, UserRegisterRequest
-import src.core.database as db
 from src.users.models import User
-
-
-@pytest_asyncio.fixture
-async def database_session() -> AsyncGenerator[AsyncSession, None]:
-    await db.init_db()
-    await db.create_db_and_tables()
-
-    assert db.async_session is not None
-    async with db.async_session() as session:
-        try:
-            yield session
-        finally:
-            await db.close_db()
 
 
 def test_auth_router_exposes_expected_routes() -> None:
