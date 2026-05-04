@@ -4,6 +4,7 @@ import pytest
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
+from src.core.config import get_settings
 import src.core.database as db
 
 
@@ -25,7 +26,8 @@ async def test_database_init_creates_engine_and_sessionmaker() -> None:
     await db.init_db()
 
     assert isinstance(db.engine, AsyncEngine)
-    assert str(db.engine.url) == "sqlite+aiosqlite:///./jetson_facelock.db"
+    assert str(db.engine.url) == get_settings().DATABASE_URL
+    assert "test_jetson_facelock.db" in str(db.engine.url)
     assert db.async_session is not None
     assert db.async_session.kw["expire_on_commit"] is False
 
