@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 
 class UserRegisterRequest(BaseModel):
@@ -61,13 +61,15 @@ class UserFaceUpdateRequest(BaseModel):
 
     face_embedding: bytes
 
-    def validate_size(self) -> None:
+    @field_validator("face_embedding")
+    @classmethod
+    def check_embedding_size(cls, v: bytes) -> bytes:
         max_size = 2 * 1024 * 1024
-        if len(self.face_embedding) > max_size:
+        if len(v) > max_size:
             raise ValueError(
-                "Face embedding too large: "
-                f"{len(self.face_embedding)} bytes > {max_size} bytes"
+                f"Face embedding too large: {len(v)} bytes > {max_size} bytes"
             )
+        return v
 
 
 class UserFaceResponse(BaseModel):
