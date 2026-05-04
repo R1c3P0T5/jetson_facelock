@@ -1,11 +1,14 @@
 from collections.abc import AsyncGenerator
+from typing import Annotated
 
+from fastapi import Depends
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
-    AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
+from sqlmodel import SQLModel
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.core.config import get_settings
 
@@ -15,9 +18,10 @@ async_session: async_sessionmaker[AsyncSession] | None = None
 
 
 async def init_db() -> None:
-    """Initialize DB engine/session.
+    """Set up async engine and session factory.
 
-    Production schema is managed by Alembic; this only ensures connectivity.
+    Deferred to avoid calling get_settings() at import time.
+    Production schema is managed by Alembic migrations.
     """
 
     global engine, async_session
@@ -39,8 +43,22 @@ async def init_db() -> None:
     )
 
 
+async def create_db_and_tables() -> None:
+    """Create all SQLModel tables from metadata.
+
+    For development and testing only — production uses Alembic migrations.
+    Safe to call multiple times (create_all is idempotent).
+    """
+
+    if engine is None:
+        raise RuntimeError("Database is not initialized. Call init_db() first.")
+
+    async with engine.begin() as conn:
+        await conn.run_sync(SQLModel.metadata.create_all)
+
+
 async def close_db() -> None:
-    """Close database connections."""
+    """Dispose the engine and clear the session factory."""
 
     global engine, async_session
     if engine is None:
@@ -51,10 +69,13 @@ async def close_db() -> None:
 
 
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
-    """Dependency function to inject a database session into routes."""
+    """Yield an async database session (FastAPI dependency)."""
 
     if async_session is None:
         raise RuntimeError("Database is not initialized. Call init_db() first.")
 
     async with async_session() as session:
         yield session
+
+
+SessionDep = Annotated[AsyncSession, Depends(get_session)]

@@ -2,7 +2,6 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.dependencies import get_current_user
 from src.auth.schemas import (
@@ -13,7 +12,7 @@ from src.auth.schemas import (
     UserResponse,
 )
 from src.auth.service import authenticate_user, register_user
-from src.core.database import get_session
+from src.core.database import SessionDep
 from src.users.models import User
 
 
@@ -23,7 +22,7 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 @router.post("/register", response_model=UserResponse, status_code=201)
 async def register(
     request: UserRegisterRequest,
-    session: Annotated[AsyncSession, Depends(get_session)],
+    session: SessionDep,
 ) -> User:
     """Register a new user."""
 
@@ -33,7 +32,7 @@ async def register(
 @router.post("/login", response_model=LoginResponse)
 async def login(
     request: UserLoginRequest,
-    session: Annotated[AsyncSession, Depends(get_session)],
+    session: SessionDep,
 ) -> LoginResponse:
     """Authenticate a user and return an access token."""
 
@@ -48,7 +47,7 @@ async def login(
 @router.post("/token", response_model=TokenResponse)
 async def token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-    session: Annotated[AsyncSession, Depends(get_session)],
+    session: SessionDep,
 ) -> TokenResponse:
     """OAuth2 Password Flow token endpoint (form-encoded)."""
 
