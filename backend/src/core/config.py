@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=True)
 
     @model_validator(mode="after")
-    def validate_secret_key(self) -> "Settings":
+    def validate_settings(self) -> "Settings":
         if not self.SECRET_KEY or len(self.SECRET_KEY) < 32:
             raise ValueError(
                 "SECRET_KEY not set or too short (min 32 characters). "
@@ -38,6 +38,4 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
-    """Get cached settings instance for dependency injection."""
-
     return Settings()
