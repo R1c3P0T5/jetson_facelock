@@ -1,9 +1,17 @@
-from src.core.config import settings
+from src.core.config import get_settings
 
 
-JWT_ALGORITHM = settings.JWT_ALGORITHM
-JWT_EXPIRATION_HOURS = settings.JWT_EXPIRATION_HOURS
-SECRET_KEY = settings.SECRET_KEY
+def get_jwt_algorithm() -> str:
+    return get_settings().JWT_ALGORITHM
+
+
+def get_jwt_expiration_hours() -> int:
+    return get_settings().JWT_EXPIRATION_HOURS
+
+
+def get_secret_key() -> str:
+    return get_settings().SECRET_KEY
+
 
 MIN_PASSWORD_LENGTH = 12
 COMMON_PASSWORDS = {
