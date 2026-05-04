@@ -3,8 +3,7 @@ from uuid import uuid4
 
 import pytest
 import pytest_asyncio
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import SQLModel
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.auth.schemas import UserLoginRequest, UserRegisterRequest
 from src.auth.utils import decode_token, hash_password
@@ -21,12 +20,9 @@ from src.users.models import User
 @pytest_asyncio.fixture
 async def database_session() -> AsyncGenerator[AsyncSession, None]:
     await db.init_db()
-    assert db.engine is not None
+    await db.create_db_and_tables()
+
     assert db.async_session is not None
-
-    async with db.engine.begin() as connection:
-        await connection.run_sync(SQLModel.metadata.create_all)
-
     async with db.async_session() as session:
         try:
             yield session

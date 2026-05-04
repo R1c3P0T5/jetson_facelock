@@ -3,12 +3,13 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from src.auth.router import router as auth_router
-from src.core.database import close_db, init_db
+from src.core.database import close_db, create_db_and_tables, init_db
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
+    await create_db_and_tables()
     try:
         yield
     finally:

@@ -55,6 +55,12 @@ async def test_get_session_requires_initialized_database() -> None:
 
 
 @pytest.mark.asyncio
+async def test_create_db_and_tables_requires_initialized_database() -> None:
+    with pytest.raises(RuntimeError, match="Database is not initialized"):
+        await db.create_db_and_tables()
+
+
+@pytest.mark.asyncio
 async def test_init_and_close_db_are_awaitable() -> None:
     assert await db.init_db() is None
     assert await db.close_db() is None

@@ -1,9 +1,8 @@
 from uuid import UUID
 
-from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col
+from sqlmodel import select
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.auth.schemas import UserLoginRequest, UserRegisterRequest
 from src.auth.utils import (
@@ -60,10 +59,9 @@ async def authenticate_user(
 ) -> tuple[User, str]:
     """Authenticate a user and return the user plus a JWT access token."""
 
-    result = await session.execute(
-        select(User).where(col(User.username) == request.username)
-    )
-    user = result.scalar_one_or_none()
+    user = (
+        await session.exec(select(User).where(User.username == request.username))
+    ).one_or_none()
 
     if user is None:
         raise InvalidCredentialsError()
@@ -80,8 +78,7 @@ async def authenticate_user(
 async def get_user_by_id(user_id: UUID, session: AsyncSession) -> User:
     """Fetch a user by ID."""
 
-    result = await session.execute(select(User).where(col(User.id) == user_id))
-    user = result.scalar_one_or_none()
+    user = (await session.exec(select(User).where(User.id == user_id))).one_or_none()
 
     if user is None:
         raise UserNotFoundError()
