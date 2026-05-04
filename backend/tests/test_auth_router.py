@@ -6,7 +6,7 @@ import pytest_asyncio
 from fastapi.routing import APIRoute
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.auth.schemas import LoginResponse, UserRegisterRequest, UserResponse
+from src.auth.schemas import LoginResponse, UserRegisterRequest
 import src.core.database as db
 from src.users.models import User
 
@@ -102,5 +102,5 @@ async def test_me_endpoint_returns_current_user() -> None:
 
     response = await get_current_user_info(user)
 
-    assert isinstance(response, UserResponse)
+    assert response is user
     assert response.username == "current_user"

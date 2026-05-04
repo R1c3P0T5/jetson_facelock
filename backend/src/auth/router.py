@@ -24,7 +24,7 @@ async def register(
     request: UserRegisterRequest,
     session: SessionDep,
 ) -> User:
-    """Register a new user."""
+    """Register a new user account."""
 
     return await register_user(request, session)
 
@@ -34,7 +34,7 @@ async def login(
     request: UserLoginRequest,
     session: SessionDep,
 ) -> LoginResponse:
-    """Authenticate a user and return an access token."""
+    """Authenticate with username/password and receive a JWT access token."""
 
     user, token = await authenticate_user(request, session)
     return LoginResponse(
@@ -61,7 +61,7 @@ async def token(
 @router.get("/me", response_model=UserResponse)
 async def get_current_user_info(
     current_user: Annotated[User, Depends(get_current_user)],
-) -> UserResponse:
-    """Return the current authenticated user."""
+) -> User:
+    """Return the profile of the currently authenticated user."""
 
-    return UserResponse.model_validate(current_user)
+    return current_user

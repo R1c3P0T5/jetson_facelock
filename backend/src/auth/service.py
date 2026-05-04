@@ -57,8 +57,6 @@ async def authenticate_user(
     request: UserLoginRequest,
     session: AsyncSession,
 ) -> tuple[User, str]:
-    """Authenticate a user and return the user plus a JWT access token."""
-
     user = (
         await session.exec(select(User).where(User.username == request.username))
     ).one_or_none()
@@ -76,9 +74,7 @@ async def authenticate_user(
 
 
 async def get_user_by_id(user_id: UUID, session: AsyncSession) -> User:
-    """Fetch a user by ID."""
-
-    user = (await session.exec(select(User).where(User.id == user_id))).one_or_none()
+    user = await session.get(User, user_id)
 
     if user is None:
         raise UserNotFoundError()

@@ -3,7 +3,6 @@ from uuid import UUID
 
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
-from sqlmodel import select
 
 from src.auth.utils import decode_token
 from src.core.database import SessionDep
@@ -37,7 +36,7 @@ async def get_current_user(
     except ValueError as exc:
         raise InvalidTokenError() from exc
 
-    user = (await session.exec(select(User).where(User.id == user_uuid))).one_or_none()
+    user = await session.get(User, user_uuid)
 
     if user is None:
         raise InvalidTokenError()
