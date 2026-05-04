@@ -106,11 +106,3 @@ async def test_admin(database_session: AsyncSession) -> User:
     await database_session.commit()
     await database_session.refresh(admin)
     return admin
-
-
-@pytest.fixture(autouse=True)
-def clear_dependency_overrides() -> Generator[None, None, None]:
-    try:
-        yield
-    finally:
-        app.dependency_overrides.clear()
