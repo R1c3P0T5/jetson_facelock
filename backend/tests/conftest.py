@@ -1,4 +1,5 @@
 from collections.abc import AsyncGenerator, Generator
+from pathlib import Path
 
 import pytest
 import pytest_asyncio
@@ -10,8 +11,23 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from main import app
 from src.auth.utils import hash_password
+from src.core.config import get_settings
 from src.core.database import get_session
 from src.users.models import User, UserRole
+
+
+@pytest.fixture(autouse=True)
+def isolate_test_settings(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> Generator[None, None, None]:
+    test_database_url = f"sqlite+aiosqlite:///{tmp_path}/test_jetson_facelock.db"
+    monkeypatch.setenv("DATABASE_URL", test_database_url)
+    get_settings.cache_clear()
+    try:
+        yield
+    finally:
+        get_settings.cache_clear()
 
 
 @pytest_asyncio.fixture

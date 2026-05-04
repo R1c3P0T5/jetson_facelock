@@ -12,12 +12,13 @@ def test_get_settings_returns_cached_settings_from_environment(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("SECRET_KEY", "a" * 32)
+    monkeypatch.setenv("DATABASE_URL", "sqlite+aiosqlite:///./test.db")
     get_settings.cache_clear()
 
     settings = get_settings()
 
     assert settings.SECRET_KEY == "a" * 32
-    assert settings.DATABASE_URL == "sqlite+aiosqlite:///./jetson_facelock.db"
+    assert settings.DATABASE_URL == "sqlite+aiosqlite:///./test.db"
     assert settings.DEBUG is True
     assert get_settings() is settings
 
