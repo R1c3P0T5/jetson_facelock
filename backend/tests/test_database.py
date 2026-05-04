@@ -1,12 +1,21 @@
 from collections.abc import AsyncGenerator
 
 import pytest
+import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 import src.core.database as db
 
 
-def test_database_engine_uses_configured_async_sqlite_url() -> None:
+@pytest_asyncio.fixture(autouse=True)
+async def reset_db() -> AsyncGenerator[None, None]:
+    await db.close_db()
+    yield
+    await db.close_db()
+
+
+@pytest.mark.asyncio
+async def test_database_engine_uses_configured_async_sqlite_url() -> None:
     assert db.engine is None
     assert db.async_session is None
 
