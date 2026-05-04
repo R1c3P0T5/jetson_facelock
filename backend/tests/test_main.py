@@ -54,6 +54,37 @@ def test_main_app_includes_health_route() -> None:
     assert ("/health", ("GET",)) in routes
 
 
+def test_openapi_docs_include_operation_and_schema_descriptions() -> None:
+    openapi_schema = app.openapi()
+
+    expected_summaries = {
+        ("/api/auth/register", "post"): "Register user",
+        ("/api/auth/login", "post"): "Login with JSON credentials",
+        ("/api/auth/token", "post"): "Issue OAuth2 access token",
+        ("/api/auth/me", "get"): "Get current user",
+        ("/api/users", "get"): "List users",
+        ("/api/users/{user_id}", "get"): "Get user profile",
+        ("/api/users/{user_id}", "put"): "Update user profile",
+        ("/api/users/{user_id}", "delete"): "Delete user",
+        ("/api/users/{user_id}/face", "put"): "Update face embedding",
+        ("/api/users/{user_id}/face", "get"): "Get face embedding metadata",
+    }
+
+    for (path, method), summary in expected_summaries.items():
+        operation = openapi_schema["paths"][path][method]
+        assert operation["summary"] == summary
+        assert operation["description"]
+
+    schemas = openapi_schema["components"]["schemas"]
+    assert schemas["UserRegisterRequest"]["properties"]["username"]["description"]
+    assert schemas["UserRegisterRequest"]["properties"]["password"]["description"]
+    assert schemas["UserLoginRequest"]["properties"]["username"]["description"]
+    assert schemas["UserFaceEmbeddingUpdateRequest"]["properties"]["face_embedding"][
+        "description"
+    ]
+    assert schemas["UserListResponse"]["properties"]["users"]["description"]
+
+
 @pytest.mark.asyncio
 async def test_lifespan_seeds_configured_default_admin(
     monkeypatch: pytest.MonkeyPatch,

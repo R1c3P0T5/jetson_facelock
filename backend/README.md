@@ -21,7 +21,7 @@ cp .env.example .env
 python3 -c "import secrets; print(secrets.token_hex(32))"
 ```
 
-Set the generated value as `SECRET_KEY` in `.env`.
+Set the generated value as `SECRET_KEY` in `.env`. See [Environment Variables](#environment-variables) for all options.
 
 Initialize or migrate the database:
 
@@ -41,19 +41,9 @@ Equivalent uvicorn command:
 uv run uvicorn main:app --reload
 ```
 
-Run tests:
-
-```bash
-uv run pytest tests -v
-```
-
 ## Environment Variables
 
-`SECRET_KEY` is required and must be at least 32 characters. Generate it with:
-
-```bash
-python3 -c "import secrets; print(secrets.token_hex(32))"
-```
+`SECRET_KEY` is required and must be at least 32 characters.
 
 `DATABASE_URL` defaults to:
 
@@ -153,7 +143,7 @@ uv run pyright main.py src tests alembic
 Run coverage:
 
 ```bash
-uv run pytest tests --cov=src --cov-report=term-missing --cov-report=html
+uv run pytest tests --cov
 ```
 
 ## Tech Stack
@@ -164,7 +154,7 @@ uv run pytest tests --cov=src --cov-report=term-missing --cov-report=html
 - Alembic migrations
 - Argon2id password hashing through `argon2-cffi`
 - JWT authentication through `python-jose`
-- pytest, pytest-asyncio, httpx, pyright, and ruff
+- pytest, pytest-asyncio, pytest-cov, httpx, pyright, and ruff
 
 ## Troubleshooting
 
