@@ -1,0 +1,65 @@
+@import 'tailwindcss';
+
+@theme {
+  /* Surfaces */
+  --color-bg: #151a1f;
+  --color-s1: #1a2026;
+  --color-s2: #222a32;
+  --color-s3: #2a3340;
+
+  /* Borders */
+  --color-bd: #364351;
+  --color-bd-soft: #2d3742;
+
+  /* Text */
+  --color-t1: #e7edf4;
+  --color-t2: #c0cdda;
+  --color-t3: #8fa0b2;
+
+  /* Semantic */
+  --color-ok: #63ae80;
+  --color-warn: #b48a46;
+  --color-err: #9e5050;
+  --color-ac: #d3dee7;
+
+  /* Typography */
+  --font-sans:
+    'SF Pro TC', 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', 'Segoe UI', system-ui,
+    sans-serif;
+  --font-mono: 'IBM Plex Mono', 'JetBrains Mono', 'SF Mono', ui-monospace, Menlo, monospace;
+
+  /* Geometry */
+  --radius: 2px;
+}
+
+/* Light mode overrides - not inside @theme so they override at runtime */
+:root[data-theme='light'] {
+  --color-bg: #f3f6f9;
+  --color-s1: #ffffff;
+  --color-s2: #f7fafc;
+  --color-s3: #edf3f7;
+  --color-bd: #c6d2dc;
+  --color-bd-soft: #dde5ec;
+  --color-t1: #17222d;
+  --color-t2: #394c5a;
+  --color-t3: #5f7384;
+  --color-ok: #2f7b4b;
+  --color-warn: #8b6a2f;
+  --color-err: #8c3f3f;
+  --color-ac: #3f5566;
+}
+
+/* Base styles */
+html {
+  color-scheme: dark;
+  background-color: var(--color-bg);
+  color: var(--color-t1);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.6;
+  letter-spacing: normal;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
