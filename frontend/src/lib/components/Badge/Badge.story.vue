@@ -1,0 +1,16 @@
+<script setup lang="ts">
+import Badge from './Badge.vue'
+
+defineOptions({
+  name: 'UiBadgeStory',
+})
+</script>
+
+<template>
+  <Story title="Badge" :layout="{ type: 'grid', width: 120 }">
+    <Variant title="Ok"><Badge variant="ok">Granted</Badge></Variant>
+    <Variant title="Warn"><Badge variant="warn">Review</Badge></Variant>
+    <Variant title="Err"><Badge variant="err">Denied</Badge></Variant>
+    <Variant title="Dim"><Badge variant="dim">Draft</Badge></Variant>
+  </Story>
+</template>
