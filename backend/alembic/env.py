@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from sqlmodel import SQLModel
 
 from alembic import context
-from src.core.config import settings
+from src.core.config import get_settings
 from src.users.models import User
 
 # this is the Alembic Config object, which provides
@@ -29,7 +29,7 @@ _ = User
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+config.set_main_option("sqlalchemy.url", get_settings().DATABASE_URL)
 
 
 def run_migrations_offline() -> None:

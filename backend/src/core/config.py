@@ -31,6 +31,3 @@ def get_settings() -> Settings:
     """Get cached settings instance for dependency injection."""
 
     return Settings()
-
-
-settings = get_settings()
