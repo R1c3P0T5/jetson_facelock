@@ -8,10 +8,10 @@ metadata updates.
 
 ## Setup
 
-Install dependencies from the `backend/` directory:
+Install development dependencies from the `backend/` directory:
 
 ```bash
-uv sync
+uv sync --dev
 ```
 
 Create a local environment file:
@@ -153,7 +153,6 @@ uv run pyright main.py src tests alembic
 Run coverage:
 
 ```bash
-uv add --dev pytest-cov
 uv run pytest tests --cov=src --cov-report=term-missing --cov-report=html
 ```
 
