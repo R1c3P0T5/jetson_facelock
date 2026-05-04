@@ -29,3 +29,34 @@ def test_settings_defaults_without_env_file() -> None:
     assert settings.DEBUG is False
     assert settings.JWT_ALGORITHM == "HS256"
     assert settings.JWT_EXPIRATION_HOURS == 24
+    assert settings.DEFAULT_ADMIN_USERNAME is None
+    assert settings.DEFAULT_ADMIN_PASSWORD is None
+    assert settings.DEFAULT_ADMIN_FULL_NAME is None
+    assert settings.DEFAULT_ADMIN_EMAIL is None
+
+
+def test_settings_accepts_default_admin_username_and_password_only() -> None:
+    settings = Settings(
+        SECRET_KEY="c" * 32,
+        DEFAULT_ADMIN_USERNAME="admin",
+        DEFAULT_ADMIN_PASSWORD="AdminPassword123",
+    )
+
+    assert settings.DEFAULT_ADMIN_USERNAME == "admin"
+    assert settings.DEFAULT_ADMIN_PASSWORD == "AdminPassword123"
+    assert settings.DEFAULT_ADMIN_FULL_NAME is None
+    assert settings.DEFAULT_ADMIN_EMAIL is None
+
+
+def test_settings_requires_default_admin_username_and_password_together() -> None:
+    with pytest.raises(
+        ValueError,
+        match="DEFAULT_ADMIN_USERNAME and DEFAULT_ADMIN_PASSWORD must be set together",
+    ):
+        Settings(SECRET_KEY="d" * 32, DEFAULT_ADMIN_USERNAME="admin")
+
+    with pytest.raises(
+        ValueError,
+        match="DEFAULT_ADMIN_USERNAME and DEFAULT_ADMIN_PASSWORD must be set together",
+    ):
+        Settings(SECRET_KEY="e" * 32, DEFAULT_ADMIN_PASSWORD="AdminPassword123")

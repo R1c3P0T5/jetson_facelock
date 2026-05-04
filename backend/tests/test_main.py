@@ -1,6 +1,11 @@
+import pytest
 from fastapi.routing import APIRoute
+from sqlmodel import select
 
-from main import app, create_app
+import src.core.database as db
+from main import app, create_app, lifespan
+from src.core.config import get_settings
+from src.users.models import User, UserRole
 
 
 def test_create_app_returns_configured_fastapi_app() -> None:
@@ -47,3 +52,21 @@ def test_main_app_includes_health_route() -> None:
     }
 
     assert ("/health", ("GET",)) in routes
+
+
+@pytest.mark.asyncio
+async def test_lifespan_seeds_configured_default_admin(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEFAULT_ADMIN_USERNAME", "startup_admin")
+    monkeypatch.setenv("DEFAULT_ADMIN_PASSWORD", "StartupPassword123")
+    get_settings.cache_clear()
+
+    async with lifespan(create_app()):
+        assert db.async_session is not None
+        async with db.async_session() as session:
+            admin = (
+                await session.exec(select(User).where(User.username == "startup_admin"))
+            ).one()
+
+    assert admin.role == UserRole.ADMIN

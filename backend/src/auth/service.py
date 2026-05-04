@@ -11,6 +11,7 @@ from src.auth.utils import (
     validate_password_strength,
     verify_password,
 )
+from src.core.config import Settings
 from src.core.exceptions import (
     EmailAlreadyInUseError,
     InactiveUserError,
@@ -19,6 +20,44 @@ from src.core.exceptions import (
     UsernameAlreadyExistsError,
 )
 from src.users.models import User, UserRole
+
+
+async def ensure_default_admin(
+    settings: Settings, session: AsyncSession
+) -> User | None:
+    """Create the configured default admin once, without overwriting existing users."""
+
+    if (
+        settings.DEFAULT_ADMIN_USERNAME is None
+        or settings.DEFAULT_ADMIN_PASSWORD is None
+    ):
+        return None
+
+    existing_user = (
+        await session.exec(
+            select(User).where(User.username == settings.DEFAULT_ADMIN_USERNAME)
+        )
+    ).one_or_none()
+    if existing_user is not None:
+        return existing_user
+
+    validate_password_strength(
+        settings.DEFAULT_ADMIN_PASSWORD,
+        settings.DEFAULT_ADMIN_USERNAME,
+        settings.DEFAULT_ADMIN_EMAIL,
+    )
+    admin = User(
+        username=settings.DEFAULT_ADMIN_USERNAME,
+        email=settings.DEFAULT_ADMIN_EMAIL,
+        password_hash=hash_password(settings.DEFAULT_ADMIN_PASSWORD),
+        full_name=settings.DEFAULT_ADMIN_FULL_NAME or settings.DEFAULT_ADMIN_USERNAME,
+        role=UserRole.ADMIN,
+        is_active=True,
+    )
+    session.add(admin)
+    await session.commit()
+    await session.refresh(admin)
+    return admin
 
 
 async def register_user(

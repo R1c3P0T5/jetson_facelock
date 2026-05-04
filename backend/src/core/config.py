@@ -12,6 +12,10 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRATION_HOURS: int = 24
+    DEFAULT_ADMIN_USERNAME: str | None = None
+    DEFAULT_ADMIN_PASSWORD: str | None = None
+    DEFAULT_ADMIN_FULL_NAME: str | None = None
+    DEFAULT_ADMIN_EMAIL: str | None = None
 
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=True)
 
@@ -22,6 +26,12 @@ class Settings(BaseSettings):
                 "SECRET_KEY not set or too short (min 32 characters). "
                 'Run: python3 -c "import secrets; print(secrets.token_hex(32))" '
                 "and set in .env"
+            )
+        has_admin_username = self.DEFAULT_ADMIN_USERNAME is not None
+        has_admin_password = self.DEFAULT_ADMIN_PASSWORD is not None
+        if has_admin_username != has_admin_password:
+            raise ValueError(
+                "DEFAULT_ADMIN_USERNAME and DEFAULT_ADMIN_PASSWORD must be set together"
             )
         return self
 
