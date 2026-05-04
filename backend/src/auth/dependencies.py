@@ -7,7 +7,11 @@ from sqlmodel import select
 
 from src.auth.utils import decode_token
 from src.core.database import SessionDep
-from src.core.exceptions import InvalidTokenError, PermissionDeniedError
+from src.core.exceptions import (
+    InactiveUserError,
+    InvalidTokenError,
+    PermissionDeniedError,
+)
 from src.users.models import User, UserRole
 
 
@@ -35,8 +39,11 @@ async def get_current_user(
 
     user = (await session.exec(select(User).where(User.id == user_uuid))).one_or_none()
 
-    if user is None or not user.is_active:
+    if user is None:
         raise InvalidTokenError()
+
+    if not user.is_active:
+        raise InactiveUserError()
 
     return user
 

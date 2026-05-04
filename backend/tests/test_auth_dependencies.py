@@ -8,7 +8,11 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.auth.utils import create_access_token
 import src.core.database as db
-from src.core.exceptions import InvalidTokenError, PermissionDeniedError
+from src.core.exceptions import (
+    InactiveUserError,
+    InvalidTokenError,
+    PermissionDeniedError,
+)
 from src.users.models import User, UserRole
 
 
@@ -85,7 +89,7 @@ async def test_get_current_user_rejects_inactive_user(
 
     token = create_access_token(user.id)
 
-    with pytest.raises(InvalidTokenError):
+    with pytest.raises(InactiveUserError):
         await get_current_user(token, database_session)
 
 
