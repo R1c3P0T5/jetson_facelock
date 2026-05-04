@@ -61,12 +61,10 @@ def test_user_face_update_request_validates_max_size() -> None:
     from src.auth.schemas import UserFaceUpdateRequest
 
     request = UserFaceUpdateRequest(face_embedding=b"abc")
+    assert len(request.face_embedding) == 3
 
-    assert request.validate_size() is None
-
-    too_large = UserFaceUpdateRequest(face_embedding=b"x" * (2 * 1024 * 1024 + 1))
-    with pytest.raises(ValueError, match="Face embedding too large"):
-        too_large.validate_size()
+    with pytest.raises(ValidationError, match="Face embedding too large"):
+        UserFaceUpdateRequest(face_embedding=b"x" * (2 * 1024 * 1024 + 1))
 
 
 def test_user_face_response_exposes_embedding_size() -> None:
