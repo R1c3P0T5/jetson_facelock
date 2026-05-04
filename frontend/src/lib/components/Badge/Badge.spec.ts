@@ -15,6 +15,12 @@ describe('Badge', () => {
     expect(wrapper.classes()).toContain('border-ok/50')
   })
 
+  it('applies info variant classes', () => {
+    const wrapper = mount(Badge, { props: { variant: 'info' } })
+    expect(wrapper.classes()).toContain('text-info')
+    expect(wrapper.classes()).toContain('border-info/50')
+  })
+
   it('applies err variant classes', () => {
     const wrapper = mount(Badge, { props: { variant: 'err' } })
     expect(wrapper.classes()).toContain('text-err')
@@ -28,5 +34,10 @@ describe('Badge', () => {
   it('applies dim variant classes by default', () => {
     const wrapper = mount(Badge)
     expect(wrapper.classes()).toContain('text-text-lo')
+  })
+
+  it('does not render status dot by default', () => {
+    const wrapper = mount(Badge)
+    expect(wrapper.find('[aria-hidden="true"]').exists()).toBe(false)
   })
 })

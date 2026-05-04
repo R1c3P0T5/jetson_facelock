@@ -18,6 +18,7 @@
 
   /* Semantic */
   --color-ok: #2f7b4b;
+  --color-info: #326f91;
   --color-warn: #8b6a2f;
   --color-err: #8c3f3f;
   --color-ac: #3f5566;
@@ -44,6 +45,7 @@
   --color-text-lo: #c0cdda;
   --color-text-placeholder: #8fa0b2;
   --color-ok: #63ae80;
+  --color-info: #5c9dbc;
   --color-warn: #b48a46;
   --color-err: #9e5050;
   --color-ac: #d3dee7;
