@@ -12,4 +12,5 @@ def test_main_app_includes_auth_routes() -> None:
 
     assert ("/api/auth/register", ("POST",)) in routes
     assert ("/api/auth/login", ("POST",)) in routes
+    assert ("/api/auth/token", ("POST",)) in routes
     assert ("/api/auth/me", ("GET",)) in routes

@@ -42,6 +42,13 @@ class LoginResponse(BaseModel):
     user: UserResponse
 
 
+class TokenResponse(BaseModel):
+    """OAuth2-compatible token response."""
+
+    access_token: str
+    token_type: str = "bearer"
+
+
 class UserUpdateRequest(BaseModel):
     """User profile update request."""
 
