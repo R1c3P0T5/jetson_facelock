@@ -56,7 +56,6 @@ async def ensure_default_admin(
     )
     session.add(admin)
     await session.commit()
-    await session.refresh(admin)
     return admin
 
 
