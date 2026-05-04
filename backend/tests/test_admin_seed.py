@@ -12,7 +12,10 @@ async def test_ensure_default_admin_skips_when_not_configured(
 ) -> None:
     from src.auth.service import ensure_default_admin
 
-    await ensure_default_admin(Settings(SECRET_KEY="a" * 32), database_session)
+    await ensure_default_admin(
+        Settings(SECRET_KEY="a" * 32, _env_file=None),  # type: ignore[call-arg]
+        database_session,
+    )
 
     users = (await database_session.exec(select(User))).all()
     assert users == []
