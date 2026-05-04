@@ -8,20 +8,25 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import SQLModel
 
 from src.auth.utils import create_access_token
-from src.core.database import engine
+import src.core.database as db
 from src.core.exceptions import InvalidTokenError, PermissionDeniedError
 from src.users.models import User
 
 
 @pytest_asyncio.fixture
 async def database_session() -> AsyncGenerator[AsyncSession, None]:
-    from src.core.database import async_session
+    await db.init_db()
+    assert db.engine is not None
+    assert db.async_session is not None
 
-    async with engine.begin() as connection:
+    async with db.engine.begin() as connection:
         await connection.run_sync(SQLModel.metadata.create_all)
 
-    async with async_session() as session:
-        yield session
+    async with db.async_session() as session:
+        try:
+            yield session
+        finally:
+            await db.close_db()
 
 
 def test_oauth2_scheme_uses_auth_login_token_url() -> None:
@@ -30,7 +35,7 @@ def test_oauth2_scheme_uses_auth_login_token_url() -> None:
     model = cast(Any, oauth2_scheme.model)
 
     assert model.flows.password is not None
-    assert model.flows.password.tokenUrl == "api/auth/login"
+    assert model.flows.password.tokenUrl == "/api/auth/token"
 
 
 @pytest.mark.asyncio

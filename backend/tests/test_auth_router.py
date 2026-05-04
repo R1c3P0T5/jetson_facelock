@@ -8,19 +8,24 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import SQLModel
 
 from src.auth.schemas import LoginResponse, UserRegisterRequest, UserResponse
-from src.core.database import engine
+import src.core.database as db
 from src.users.models import User
 
 
 @pytest_asyncio.fixture
 async def database_session() -> AsyncGenerator[AsyncSession, None]:
-    from src.core.database import async_session
+    await db.init_db()
+    assert db.engine is not None
+    assert db.async_session is not None
 
-    async with engine.begin() as connection:
+    async with db.engine.begin() as connection:
         await connection.run_sync(SQLModel.metadata.create_all)
 
-    async with async_session() as session:
-        yield session
+    async with db.async_session() as session:
+        try:
+            yield session
+        finally:
+            await db.close_db()
 
 
 def test_auth_router_exposes_expected_routes() -> None:
@@ -35,6 +40,7 @@ def test_auth_router_exposes_expected_routes() -> None:
     assert router.prefix == "/api/auth"
     assert ("/api/auth/register", ("POST",)) in routes
     assert ("/api/auth/login", ("POST",)) in routes
+    assert ("/api/auth/token", ("POST",)) in routes
     assert ("/api/auth/me", ("GET",)) in routes
 
 

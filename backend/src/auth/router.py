@@ -1,11 +1,13 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.dependencies import get_current_user
 from src.auth.schemas import (
     LoginResponse,
+    TokenResponse,
     UserLoginRequest,
     UserRegisterRequest,
     UserResponse,
@@ -41,6 +43,20 @@ async def login(
         token_type="bearer",
         user=UserResponse.model_validate(user),
     )
+
+
+@router.post("/token", response_model=TokenResponse)
+async def token(
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> TokenResponse:
+    """OAuth2 Password Flow token endpoint (form-encoded)."""
+
+    user, token_value = await authenticate_user(
+        UserLoginRequest(username=form_data.username, password=form_data.password),
+        session,
+    )
+    return TokenResponse(access_token=token_value, token_type="bearer")
 
 
 @router.get("/me", response_model=UserResponse)
