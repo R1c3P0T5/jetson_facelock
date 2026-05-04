@@ -6,7 +6,6 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
-from sqlmodel import SQLModel
 
 from src.core.config import get_settings
 
@@ -38,8 +37,6 @@ async def init_db() -> None:
         expire_on_commit=False,
         autoflush=False,
     )
-
-    _ = SQLModel.metadata
 
 
 async def close_db() -> None:
