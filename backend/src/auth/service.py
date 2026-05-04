@@ -1,5 +1,3 @@
-from uuid import UUID
-
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -16,7 +14,6 @@ from src.core.exceptions import (
     EmailAlreadyInUseError,
     InactiveUserError,
     InvalidCredentialsError,
-    UserNotFoundError,
     UsernameAlreadyExistsError,
 )
 from src.users.models import User, UserRole
@@ -109,12 +106,3 @@ async def authenticate_user(
         raise InvalidCredentialsError()
 
     return user, create_access_token(user.id)
-
-
-async def get_user_by_id(user_id: UUID, session: AsyncSession) -> User:
-    user = await session.get(User, user_id)
-
-    if user is None:
-        raise UserNotFoundError()
-
-    return user

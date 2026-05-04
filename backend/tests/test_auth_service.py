@@ -130,7 +130,7 @@ async def test_authenticate_user_rejects_inactive_user(
 async def test_get_user_by_id_rejects_missing_user(
     database_session: AsyncSession,
 ) -> None:
-    from src.auth.service import get_user_by_id
+    from src.users.service import get_user_by_id
 
     with pytest.raises(UserNotFoundError):
         await get_user_by_id(uuid4(), database_session)
