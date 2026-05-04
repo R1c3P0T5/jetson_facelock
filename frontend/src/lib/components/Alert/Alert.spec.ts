@@ -19,6 +19,43 @@ describe('Alert', () => {
     expect(wrapper.text()).toContain('All nodes synced.')
   })
 
+  it('renders without a title', () => {
+    const wrapper = mount(Alert, {
+      props: { variant: 'info' },
+      slots: { default: 'Body only message.' },
+    })
+
+    expect(wrapper.find('strong').exists()).toBe(false)
+    expect(wrapper.text()).toBe('Body only message.')
+  })
+
+  it('renders icon slot before title', () => {
+    const wrapper = mount(Alert, {
+      props: { title: 'Model updated', variant: 'info' },
+      slots: { icon: '<span data-test="alert-icon">i</span>' },
+    })
+
+    const header = wrapper.find('[data-test="alert-header"]')
+
+    expect(header.element.firstElementChild).toBe(wrapper.find('[data-test="alert-icon"]').element)
+    expect(header.find('strong').text()).toBe('Model updated')
+  })
+
+  it('renders no close button by default', () => {
+    const wrapper = mount(Alert, { props: { title: 'Note', variant: 'info' } })
+
+    expect(wrapper.find('button').exists()).toBe(false)
+  })
+
+  it('emits close and hides alert when close button is clicked', async () => {
+    const wrapper = mount(Alert, { props: { title: 'Note', variant: 'info', closable: true } })
+
+    await wrapper.find('button').trigger('click')
+
+    expect(wrapper.emitted('close')).toHaveLength(1)
+    expect(wrapper.find('[role="alert"]').exists()).toBe(false)
+  })
+
   it('applies ok variant classes', () => {
     const wrapper = mount(Alert, { props: { title: 'OK', variant: 'ok' } })
 

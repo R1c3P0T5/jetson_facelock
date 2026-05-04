@@ -18,6 +18,14 @@ defineOptions({
         >Face embedding index refreshed from latest enrollment.</Alert
       >
     </Variant>
+    <Variant title="With icon">
+      <Alert variant="info" title="Model updated">
+        <template #icon>
+          <span class="font-mono text-xs" aria-hidden="true">i</span>
+        </template>
+        Face embedding index refreshed from latest enrollment.
+      </Alert>
+    </Variant>
     <Variant title="Warn">
       <Alert variant="warn" title="Queue elevated"
         >CAM-03 backlog exceeded baseline threshold.</Alert
@@ -29,6 +37,14 @@ defineOptions({
     <Variant title="Dim">
       <Alert variant="dim" title="Muted source"
         >Lobby camera is excluded from unlock decisions.</Alert
+      >
+    </Variant>
+    <Variant title="Body only">
+      <Alert variant="dim">Lobby camera is excluded from unlock decisions.</Alert>
+    </Variant>
+    <Variant title="Closable">
+      <Alert variant="warn" title="Queue elevated" closable
+        >CAM-03 backlog exceeded baseline threshold.</Alert
       >
     </Variant>
   </Story>
