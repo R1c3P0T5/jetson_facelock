@@ -86,7 +86,7 @@ def decode_token(token: str) -> dict[str, Any] | None:
     except JWTError:
         return None
 
-    if payload.get("sub") is None:
+    if payload.get("sub") is None or payload.get("type") != "access":
         return None
 
     return payload
