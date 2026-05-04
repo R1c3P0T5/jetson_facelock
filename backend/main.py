@@ -15,9 +15,7 @@ from src.users.router import router as users_router
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     await db.init_db()
     await db.create_db_and_tables()
-    if db.async_session is None:
-        raise RuntimeError("Database is not initialized. Call init_db() first.")
-    async with db.async_session() as session:
+    async with db.session_context() as session:
         await ensure_default_admin(get_settings(), session)
     try:
         yield
