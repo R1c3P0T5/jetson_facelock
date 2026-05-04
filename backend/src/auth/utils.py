@@ -9,10 +9,10 @@ from jose import JWTError, jwt
 from src.core.exceptions import PasswordValidationError
 from src.core.security import (
     COMMON_PASSWORDS,
-    JWT_ALGORITHM,
-    JWT_EXPIRATION_HOURS,
     MIN_PASSWORD_LENGTH,
-    SECRET_KEY,
+    get_jwt_algorithm,
+    get_jwt_expiration_hours,
+    get_secret_key,
 )
 
 
@@ -62,21 +62,27 @@ def validate_password_strength(
 def create_access_token(user_id: UUID) -> str:
     """Create a JWT access token for the given user."""
 
-    expires_at = datetime.now(timezone.utc) + timedelta(hours=JWT_EXPIRATION_HOURS)
+    expires_at = datetime.now(timezone.utc) + timedelta(
+        hours=get_jwt_expiration_hours()
+    )
     payload = {
         "sub": str(user_id),
         "type": "access",
         "exp": expires_at,
     }
 
-    return jwt.encode(payload, SECRET_KEY, algorithm=JWT_ALGORITHM)
+    return jwt.encode(payload, get_secret_key(), algorithm=get_jwt_algorithm())
 
 
 def decode_token(token: str) -> dict[str, Any] | None:
     """Decode a JWT token, returning None for invalid or expired tokens."""
 
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        payload = jwt.decode(
+            token,
+            get_secret_key(),
+            algorithms=[get_jwt_algorithm()],
+        )
     except JWTError:
         return None
 
