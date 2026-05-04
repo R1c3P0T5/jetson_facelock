@@ -1,4 +1,5 @@
 from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 from typing import Annotated
 
 from fastapi import Depends
@@ -66,6 +67,17 @@ async def close_db() -> None:
     await engine.dispose()
     engine = None
     async_session = None
+
+
+@asynccontextmanager
+async def session_context() -> AsyncGenerator[AsyncSession, None]:
+    """Context manager that yields a session; for use outside request handling."""
+
+    if async_session is None:
+        raise RuntimeError("Database is not initialized. Call init_db() first.")
+
+    async with async_session() as session:
+        yield session
 
 
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
