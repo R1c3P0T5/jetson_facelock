@@ -16,8 +16,8 @@ const open = ref(false)
         <p>This action updates camera policy rules for all edge nodes.</p>
         <p>Estimated rollout: 45 seconds · 3 active nodes.</p>
         <template #footer>
-          <Button variant="secondary" size="sm" @click="open = false">Cancel</Button>
-          <Button variant="primary" size="sm" @click="open = false">Confirm update</Button>
+          <Button variant="ghost" size="sm" @click="open = false">Cancel</Button>
+          <Button variant="ok" size="sm" @click="open = false">Confirm update</Button>
         </template>
       </Dialog>
       <Button variant="secondary" size="sm" @click="open = true">Open dialog</Button>
