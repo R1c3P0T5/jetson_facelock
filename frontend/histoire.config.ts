@@ -14,9 +14,16 @@ export default defineConfig({
       {
         title: 'Form',
         include: f =>
-          ['Input', 'Switch', 'Checkbox', 'RadioGroup', 'Textarea', 'NativeSelect', 'Select'].some(n =>
-            f.title.includes(n),
-          ),
+          [
+            'Input',
+            'Switch',
+            'Checkbox',
+            'RadioGroup',
+            'Textarea',
+            'NativeSelect',
+            'Select',
+            'Combobox',
+          ].some(n => f.title.includes(n)),
       },
       { title: 'Navigation', include: f => f.title.includes('Tabs') },
       { title: 'Overlay', include: f => ['Toast', 'Dialog'].some(n => f.title.includes(n)) },
