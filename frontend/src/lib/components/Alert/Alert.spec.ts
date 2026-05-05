@@ -56,6 +56,39 @@ describe('Alert', () => {
     expect(wrapper.find('[role="alert"]').exists()).toBe(false)
   })
 
+  it('uses compact button classes for the close control', () => {
+    const wrapper = mount(Alert, { props: { title: 'Note', variant: 'info', closable: true } })
+
+    expect(wrapper.find('button').classes()).toEqual(
+      expect.arrayContaining(['min-h-[28px]', 'text-[var(--button-text)]']),
+    )
+  })
+
+  it('aligns close button color with alert text color', () => {
+    const wrapper = mount(Alert, { props: { title: 'Warn', variant: 'warn', closable: true } })
+
+    expect(wrapper.find('button').attributes('style')).toContain('--button-text: currentColor')
+  })
+
+  it('does not render an empty header when body-only alert is closable', () => {
+    const wrapper = mount(Alert, {
+      props: { variant: 'dim', closable: true },
+      slots: { default: 'Body only message.' },
+    })
+
+    expect(wrapper.find('[data-test="alert-header"]').exists()).toBe(false)
+    expect(wrapper.find('button').exists()).toBe(true)
+  })
+
+  it('adds top breathing room for body-only alerts', () => {
+    const wrapper = mount(Alert, {
+      props: { variant: 'dim' },
+      slots: { default: 'Body only message.' },
+    })
+
+    expect(wrapper.find('[data-test="alert-body"]').classes()).toContain('pt-0.5')
+  })
+
   it('applies ok variant classes', () => {
     const wrapper = mount(Alert, { props: { title: 'OK', variant: 'ok' } })
 

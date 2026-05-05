@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, useSlots } from 'vue'
 
+import Button from '../Button/Button.vue'
+
 export type AlertVariant = 'ok' | 'info' | 'warn' | 'err' | 'dim'
 
 defineOptions({
@@ -31,7 +33,7 @@ const close = () => {
   emit('close')
 }
 
-const hasHeader = computed(() => Boolean(props.title || slots.icon || props.closable))
+const hasHeader = computed(() => Boolean(props.title || slots.icon))
 
 const variantClasses: Record<AlertVariant, string> = {
   ok: 'border-ok/50 bg-ok/10 text-ok',
@@ -42,31 +44,45 @@ const variantClasses: Record<AlertVariant, string> = {
 }
 
 const classes = computed(() => [
-  'grid gap-1 rounded-[2px] border p-2.5',
+  'relative grid gap-1 rounded-[2px] border p-2.5',
   variantClasses[props.variant],
 ])
+
+const bodyClasses = computed(() => [
+  'text-sm opacity-90',
+  !hasHeader.value && 'pt-0.5',
+  props.closable && 'pr-8',
+])
+
+const closeButtonColor = {
+  text: 'currentColor',
+  bg: 'transparent',
+  border: 'transparent',
+  hoverBg: 'color-mix(in srgb, currentColor 10%, transparent)',
+  hoverBorder: 'color-mix(in srgb, currentColor 35%, transparent)',
+}
 </script>
 
 <template>
   <div v-if="open" :class="classes" role="alert">
-    <div v-if="hasHeader" class="flex items-start justify-between gap-2">
-      <div data-test="alert-header" class="flex min-w-0 items-center gap-1.5">
-        <slot name="icon" />
-        <strong v-if="title" class="font-mono text-xs uppercase tracking-[0.08em]">
-          {{ title }}
-        </strong>
-      </div>
-      <button
-        v-if="closable"
-        type="button"
-        class="-m-1 inline-flex size-6 shrink-0 items-center justify-center rounded-[2px] font-mono text-xs opacity-70 transition-opacity hover:opacity-100 focus-visible:outline focus-visible:outline-1 focus-visible:outline-current focus-visible:outline-offset-2"
-        aria-label="Close alert"
-        @click="close"
-      >
-        <span aria-hidden="true">x</span>
-      </button>
+    <div v-if="hasHeader" class="flex min-w-0 items-center gap-1.5 pr-8" data-test="alert-header">
+      <slot name="icon" />
+      <strong v-if="title" class="font-mono text-xs uppercase tracking-[0.08em]">
+        {{ title }}
+      </strong>
     </div>
-    <p v-if="$slots.default" class="text-sm opacity-90">
+    <Button
+      v-if="closable"
+      class="absolute right-1 top-1"
+      variant="ghost"
+      size="xs"
+      :color="closeButtonColor"
+      aria-label="Close alert"
+      @click="close"
+    >
+      x
+    </Button>
+    <p v-if="$slots.default" :class="bodyClasses" data-test="alert-body">
       <slot />
     </p>
   </div>
