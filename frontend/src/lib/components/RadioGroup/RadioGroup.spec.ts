@@ -44,6 +44,6 @@ describe('RadioGroup', () => {
     const wrapper = mount(RadioGroup, { props: { modelValue: 'pin', options, invalid: true } })
 
     expect(wrapper.attributes('aria-invalid')).toBe('true')
-    expect(wrapper.find('input').classes()).toContain('outline-err')
+    expect(wrapper.find('input').classes()).toContain('border-err')
   })
 })

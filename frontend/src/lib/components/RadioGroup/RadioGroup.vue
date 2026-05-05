@@ -42,7 +42,6 @@ const groupName = computed(() => props.name ?? `radio-group-${Math.random().toSt
 
 const update = (option: RadioGroupOption) => {
   if (props.disabled || option.disabled) return
-
   emit('update:modelValue', option.value)
 }
 </script>
@@ -65,19 +64,31 @@ const update = (option: RadioGroupOption) => {
         disabled || option.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
       ]"
     >
-      <input
-        type="radio"
-        :name="groupName"
-        :value="option.value"
-        :checked="modelValue === option.value"
-        :disabled="disabled || option.disabled"
-        :aria-invalid="isInvalid || undefined"
-        :class="[
-          'mt-0.5 h-[18px] w-[18px] shrink-0 cursor-inherit accent-ac outline-offset-2 focus-visible:outline focus-visible:outline-1 focus-visible:outline-ac',
-          isInvalid && 'outline outline-1 outline-err',
-        ]"
-        @change="update(option)"
-      />
+      <span
+        class="relative mt-0.5 inline-flex h-[18px] w-[18px] shrink-0 items-center justify-center"
+      >
+        <input
+          type="radio"
+          :name="groupName"
+          :value="option.value"
+          :checked="modelValue === option.value"
+          :disabled="disabled || option.disabled"
+          :aria-invalid="isInvalid || undefined"
+          :class="[
+            'peer absolute inset-0 cursor-[inherit] appearance-none rounded-[2px] border bg-bg transition-colors duration-[120ms]',
+            'focus-visible:outline focus-visible:outline-1 focus-visible:outline-ac focus-visible:outline-offset-2',
+            'disabled:cursor-not-allowed',
+            isInvalid ? 'border-err checked:border-err' : 'border-border checked:border-ac',
+          ]"
+          @change="update(option)"
+        />
+        <span
+          :class="[
+            'pointer-events-none relative z-10 h-[8px] w-[8px] rounded-[1px] opacity-0 transition-opacity duration-[120ms] peer-checked:opacity-100',
+            isInvalid ? 'bg-err' : 'bg-ac',
+          ]"
+        />
+      </span>
       <span class="grid gap-0.5">
         <span class="text-sm text-text-hi">{{ option.label }}</span>
         <span v-if="option.description" class="text-xs text-text-placeholder">

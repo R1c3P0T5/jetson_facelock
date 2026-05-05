@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, useAttrs } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, useAttrs } from 'vue'
 
 defineOptions({
   name: 'UiSelect',
@@ -36,6 +36,7 @@ const emit = defineEmits<{
 }>()
 
 const attrs = useAttrs()
+const root = ref<HTMLElement>()
 const open = ref(false)
 const isInvalid = computed(
   () => props.invalid || attrs['aria-invalid'] === true || attrs['aria-invalid'] === 'true',
@@ -46,7 +47,6 @@ const selectedOption = computed(() =>
 
 const toggle = () => {
   if (props.disabled) return
-
   open.value = !open.value
 }
 
@@ -56,14 +56,22 @@ const close = () => {
 
 const choose = (option: SelectOption) => {
   if (props.disabled || option.disabled) return
-
   emit('update:modelValue', option.value)
   close()
 }
+
+const onDocClick = (e: MouseEvent) => {
+  if (open.value && !root.value?.contains(e.target as Node)) {
+    close()
+  }
+}
+
+onMounted(() => document.addEventListener('mousedown', onDocClick))
+onBeforeUnmount(() => document.removeEventListener('mousedown', onDocClick))
 </script>
 
 <template>
-  <div class="relative grid gap-1">
+  <div ref="root" class="relative grid gap-1">
     <button
       v-bind="$attrs"
       type="button"
@@ -74,20 +82,36 @@ const choose = (option: SelectOption) => {
       :class="[
         'flex min-h-[38px] w-full items-center justify-between gap-2 rounded-[2px] border bg-bg px-2.5 py-2 text-left font-sans text-sm outline-none transition-colors duration-[120ms]',
         'disabled:cursor-not-allowed disabled:opacity-50',
-        'focus:border-ac',
+        'focus:border-ac focus:ring-1 focus:ring-ac/20',
         selectedOption ? 'text-text-hi' : 'text-text-placeholder',
-        isInvalid ? 'border-err' : 'border-border',
+        isInvalid ? 'border-err focus:ring-err/20' : 'border-border',
       ]"
       @click="toggle"
       @keydown.escape.prevent="close"
     >
       <span>{{ selectedOption?.label ?? placeholder }}</span>
-      <span class="font-mono text-[11px] text-text-placeholder">v</span>
+      <svg
+        :class="[
+          'h-3 w-3 shrink-0 text-text-placeholder transition-transform duration-[120ms]',
+          open && 'rotate-180',
+        ]"
+        viewBox="0 0 12 12"
+        fill="none"
+        aria-hidden="true"
+      >
+        <path
+          d="M2 4.5L6 8L10 4.5"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
     </button>
     <div
       v-if="open"
       role="listbox"
-      class="absolute left-0 right-0 top-[calc(100%-18px)] z-20 grid max-h-56 overflow-auto rounded-[2px] border border-border bg-overlay p-1 shadow-lg"
+      class="absolute left-0 right-0 top-full z-20 mt-1 grid max-h-56 overflow-auto rounded-[2px] border border-border bg-overlay p-1 shadow-lg"
     >
       <button
         v-for="option in options"
@@ -98,16 +122,31 @@ const choose = (option: SelectOption) => {
         :disabled="option.disabled"
         :data-value="option.value"
         :class="[
-          'rounded-[2px] px-2 py-1.5 text-left text-sm text-text-hi outline-none transition-colors duration-[120ms]',
+          'flex items-center justify-between rounded-[2px] px-2 py-1.5 text-left text-sm text-text-hi outline-none transition-colors duration-[120ms]',
           'hover:bg-element focus:bg-element disabled:cursor-not-allowed disabled:opacity-50',
           modelValue === option.value && 'bg-element',
         ]"
         @click="choose(option)"
       >
-        {{ option.label }}
+        <span>{{ option.label }}</span>
+        <svg
+          v-if="modelValue === option.value"
+          class="h-3 w-3 shrink-0 text-ac"
+          viewBox="0 0 12 12"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M2 6L4.5 8.5L10 3"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
       </button>
     </div>
-    <p v-if="error && invalid" class="font-mono text-[11px] text-err">{{ error }}</p>
+    <p v-if="error && isInvalid" class="font-mono text-[11px] text-err">{{ error }}</p>
     <p v-else-if="hint" class="font-mono text-[11px] text-text-placeholder">{{ hint }}</p>
   </div>
 </template>
