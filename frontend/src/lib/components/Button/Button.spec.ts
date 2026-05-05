@@ -47,20 +47,20 @@ describe('Button', () => {
 
   it('applies xs size class', () => {
     const wrapper = mount(Button, { props: { size: 'xs' } })
-    expect(wrapper.classes()).toContain('min-h-[28px]')
+    expect(wrapper.classes()).toContain('min-h-7')
   })
 
   it('applies distinct sm size classes', () => {
     const wrapper = mount(Button, { props: { size: 'sm' } })
 
-    expect(wrapper.classes()).toContain('min-h-[32px]')
-    expect(wrapper.classes()).toContain('text-[11px]')
+    expect(wrapper.classes()).toContain('min-h-8')
+    expect(wrapper.classes()).toContain('text-xs')
   })
 
   it('applies compact xs classes for tool buttons', () => {
     const wrapper = mount(Button, { props: { size: 'xs' }, slots: { default: 'x' } })
 
-    expect(wrapper.classes()).toContain('min-h-[28px]')
+    expect(wrapper.classes()).toContain('min-h-7')
     expect(wrapper.classes()).toContain('px-2')
   })
 

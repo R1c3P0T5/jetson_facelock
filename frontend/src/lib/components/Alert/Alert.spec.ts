@@ -60,7 +60,7 @@ describe('Alert', () => {
     const wrapper = mount(Alert, { props: { title: 'Note', variant: 'info', closable: true } })
 
     expect(wrapper.find('button').classes()).toEqual(
-      expect.arrayContaining(['min-h-[28px]', 'text-[var(--button-text)]']),
+      expect.arrayContaining(['min-h-7', 'text-[var(--button-text)]']),
     )
   })
 
