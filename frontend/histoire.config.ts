@@ -11,7 +11,10 @@ export default defineConfig({
   tree: {
     groups: [
       { title: 'Primitives', include: f => ['Button', 'Badge', 'Alert'].some(n => f.title.includes(n)) },
-      { title: 'Form', include: f => ['Input', 'Switch', 'Checkbox'].some(n => f.title.includes(n)) },
+      {
+        title: 'Form',
+        include: f => ['Input', 'Switch', 'Checkbox', 'RadioGroup'].some(n => f.title.includes(n)),
+      },
       { title: 'Navigation', include: f => f.title.includes('Tabs') },
       { title: 'Overlay', include: f => ['Toast', 'Dialog'].some(n => f.title.includes(n)) },
     ],
