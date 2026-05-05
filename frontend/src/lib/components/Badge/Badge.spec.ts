@@ -40,4 +40,27 @@ describe('Badge', () => {
     const wrapper = mount(Badge)
     expect(wrapper.find('[aria-hidden="true"]').exists()).toBe(false)
   })
+
+  it('applies custom color styles from a color string', () => {
+    const wrapper = mount(Badge, { props: { color: '#326f91' } })
+
+    expect(wrapper.attributes('style')).toContain('--badge-text: #326f91')
+    expect(wrapper.classes()).toContain('text-[var(--badge-text)]')
+  })
+
+  it('applies custom color styles from color parts', () => {
+    const wrapper = mount(Badge, {
+      props: {
+        color: {
+          text: '#123456',
+          bg: '#eef6fb',
+          border: '#8fb6ca',
+        },
+      },
+    })
+
+    expect(wrapper.attributes('style')).toContain('--badge-text: #123456')
+    expect(wrapper.attributes('style')).toContain('--badge-bg: #eef6fb')
+    expect(wrapper.attributes('style')).toContain('--badge-border: #8fb6ca')
+  })
 })

@@ -13,6 +13,7 @@ defineOptions({
     <Variant title="Warn"><Badge variant="warn">Review</Badge></Variant>
     <Variant title="Err"><Badge variant="err">Denied</Badge></Variant>
     <Variant title="Dim"><Badge variant="dim">Draft</Badge></Variant>
+    <Variant title="Custom"><Badge color="#326f91">Camera</Badge></Variant>
     <Variant title="With dot">
       <Badge variant="info">
         <span class="w-1.5 h-1.5 rounded-full bg-current opacity-80" aria-hidden="true" />
