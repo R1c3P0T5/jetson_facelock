@@ -64,9 +64,7 @@ const update = (option: RadioGroupOption) => {
         disabled || option.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
       ]"
     >
-      <span
-        class="relative mt-0.5 inline-flex h-[18px] w-[18px] shrink-0 items-center justify-center"
-      >
+      <span class="relative mt-0.5 inline-flex h-4.5 w-4.5 shrink-0 items-center justify-center">
         <input
           type="radio"
           :name="groupName"
@@ -75,7 +73,7 @@ const update = (option: RadioGroupOption) => {
           :disabled="disabled || option.disabled"
           :aria-invalid="isInvalid || undefined"
           :class="[
-            'peer absolute inset-0 cursor-[inherit] appearance-none rounded-[2px] border bg-bg transition-colors duration-[120ms]',
+            'peer absolute inset-0 cursor-[inherit] appearance-none border bg-bg transition-colors duration-[120ms]',
             'focus-visible:outline focus-visible:outline-1 focus-visible:outline-ac focus-visible:outline-offset-2',
             'disabled:cursor-not-allowed',
             isInvalid ? 'border-err checked:border-err' : 'border-border checked:border-ac',
@@ -84,7 +82,7 @@ const update = (option: RadioGroupOption) => {
         />
         <span
           :class="[
-            'pointer-events-none relative z-10 h-[8px] w-[8px] rounded-[1px] opacity-0 transition-opacity duration-[120ms] peer-checked:opacity-100',
+            'pointer-events-none relative z-10 h-2.5 w-2.5 opacity-0 transition-opacity duration-[120ms] peer-checked:opacity-100',
             isInvalid ? 'bg-err' : 'bg-ac',
           ]"
         />

@@ -83,6 +83,11 @@ const choose = (option: ComboboxOption) => {
   close()
 }
 
+const clear = () => {
+  emit('update:modelValue', '')
+  close()
+}
+
 const onDocClick = (e: MouseEvent) => {
   if (open.value && !root.value?.contains(e.target as Node)) {
     close()
@@ -94,7 +99,7 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', onDocClick))
 </script>
 
 <template>
-  <div ref="root" class="relative grid gap-1">
+  <div ref="root" class="grid gap-1">
     <div class="relative">
       <input
         v-bind="$attrs"
@@ -105,7 +110,7 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', onDocClick))
         :aria-invalid="isInvalid || undefined"
         :disabled="disabled"
         :class="[
-          'min-h-[38px] w-full rounded-[2px] border bg-bg py-2 pl-2.5 pr-8 font-sans text-sm text-text-hi outline-none transition-colors duration-[120ms] placeholder:text-text-placeholder',
+          'min-h-9.5 w-full rounded-[2px] border bg-bg py-2 pl-2.5 pr-8 font-sans text-sm text-text-hi outline-none transition-colors duration-[120ms] placeholder:text-text-placeholder',
           'disabled:cursor-not-allowed disabled:opacity-50',
           'focus:border-ac focus:ring-1 focus:ring-ac/20',
           isInvalid ? 'border-err focus:ring-err/20' : 'border-border',
@@ -120,10 +125,7 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', onDocClick))
         tabindex="-1"
         aria-hidden="true"
         class="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-placeholder transition-colors duration-[120ms] hover:text-text-hi"
-        @click.stop="
-          emit('update:modelValue', '')
-          close()
-        "
+        @click.stop="clear"
       >
         <svg class="h-3 w-3" viewBox="0 0 12 12" fill="none">
           <path
@@ -153,52 +155,52 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', onDocClick))
           />
         </svg>
       </span>
-    </div>
-    <div
-      v-if="open"
-      role="listbox"
-      class="absolute left-0 right-0 top-full z-20 mt-1 grid max-h-56 overflow-auto rounded-[2px] border border-border bg-overlay p-1 shadow-lg"
-    >
-      <p
-        v-if="filteredOptions.length === 0"
-        class="px-2 py-1.5 font-mono text-[11px] text-text-placeholder"
+      <div
+        v-if="open"
+        role="listbox"
+        class="absolute left-0 right-0 top-full z-20 mt-1 grid max-h-56 overflow-auto rounded-[2px] border border-border bg-overlay p-1 shadow-lg"
       >
-        {{ emptyText }}
-      </p>
-      <button
-        v-for="option in filteredOptions"
-        :key="option.value"
-        type="button"
-        role="option"
-        :aria-selected="modelValue === option.value"
-        :disabled="option.disabled"
-        :data-value="option.value"
-        :class="[
-          'flex items-center justify-between rounded-[2px] px-2 py-1.5 text-left text-sm text-text-hi outline-none transition-colors duration-[120ms]',
-          'hover:bg-element focus:bg-element disabled:cursor-not-allowed disabled:opacity-50',
-          modelValue === option.value && 'bg-element',
-        ]"
-        @click="choose(option)"
-      >
-        <span>{{ option.label }}</span>
-        <svg
-          v-if="modelValue === option.value"
-          class="h-3 w-3 shrink-0 text-ac"
-          viewBox="0 0 12 12"
-          fill="none"
-          aria-hidden="true"
+        <p
+          v-if="filteredOptions.length === 0"
+          class="px-2 py-1.5 font-mono text-xs text-text-placeholder"
         >
-          <path
-            d="M2 6L4.5 8.5L10 3"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-      </button>
+          {{ emptyText }}
+        </p>
+        <button
+          v-for="option in filteredOptions"
+          :key="option.value"
+          type="button"
+          role="option"
+          :aria-selected="modelValue === option.value"
+          :disabled="option.disabled"
+          :data-value="option.value"
+          :class="[
+            'flex items-center justify-between rounded-[2px] px-2 py-1.5 text-left text-sm text-text-hi outline-none transition-colors duration-[120ms]',
+            'hover:bg-element focus:bg-element disabled:cursor-not-allowed disabled:opacity-50',
+            modelValue === option.value && 'bg-element',
+          ]"
+          @click="choose(option)"
+        >
+          <span>{{ option.label }}</span>
+          <svg
+            v-if="modelValue === option.value"
+            class="h-3 w-3 shrink-0 text-ac"
+            viewBox="0 0 12 12"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M2 6L4.5 8.5L10 3"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
+      </div>
     </div>
-    <p v-if="error && isInvalid" class="font-mono text-[11px] text-err">{{ error }}</p>
-    <p v-else-if="hint" class="font-mono text-[11px] text-text-placeholder">{{ hint }}</p>
+    <p v-if="error && isInvalid" class="font-mono text-xs text-err">{{ error }}</p>
+    <p v-else-if="hint" class="font-mono text-xs text-text-placeholder">{{ hint }}</p>
   </div>
 </template>

@@ -36,10 +36,10 @@ const toggle = () => {
       :aria-label="label && !description ? label : undefined"
       :disabled="disabled"
       :class="[
-        'relative mt-0.5 h-[22px] w-[42px] shrink-0 rounded-full border transition-colors duration-[120ms]',
+        'relative mt-0.5 h-5.5 w-10.5 shrink-0 rounded-full border transition-colors duration-[120ms]',
         'cursor-pointer disabled:cursor-not-allowed disabled:opacity-50',
         'focus-visible:outline focus-visible:outline-1 focus-visible:outline-ac focus-visible:outline-offset-2',
-        modelValue ? 'border-ok/50 bg-ok/10' : 'border-border bg-bg',
+        modelValue ? 'border-ac/50 bg-ac/10' : 'border-border bg-bg',
       ]"
       @click="toggle"
       @keydown.space.prevent="toggle"
@@ -47,8 +47,8 @@ const toggle = () => {
     >
       <span
         :class="[
-          'absolute top-[3px] h-[14px] w-[14px] rounded-full transition-all duration-[120ms]',
-          modelValue ? 'left-[23px] bg-ok' : 'left-[3px] bg-text-placeholder',
+          'absolute left-0.75 top-0.75 h-3.5 w-3.5 rounded-full transition-all duration-[120ms]',
+          modelValue ? 'translate-x-5.5 bg-ac' : 'bg-text-placeholder',
         ]"
       />
     </button>

@@ -47,10 +47,10 @@ const base =
   'inline-flex items-center justify-center gap-1.5 rounded-[2px] border font-mono text-xs uppercase tracking-[0.06em] whitespace-nowrap transition-all duration-[120ms] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline focus-visible:outline-1 focus-visible:outline-ac focus-visible:outline-offset-2'
 
 const sizeClasses: Record<ButtonSize, string> = {
-  xs: 'min-h-[28px] px-2 py-1 text-[11px]',
-  sm: 'min-h-[32px] px-2.5 py-1.5 text-[11px]',
-  default: 'min-h-[36px] px-3 py-2',
-  lg: 'min-h-[42px] px-3.5 py-2.5 text-[13px]',
+  xs: 'min-h-7 px-2 py-1 text-xs',
+  sm: 'min-h-8 px-2.5 py-1.5 text-xs',
+  default: 'min-h-9 px-3 py-2',
+  lg: 'min-h-10.5 px-3.5 py-2.5 text-[0.8125rem]',
 }
 
 const variantClasses: Record<ButtonVariant, string> = {

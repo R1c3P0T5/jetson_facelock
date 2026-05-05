@@ -32,7 +32,7 @@ const isInvalid = computed(
       <span
         v-if="prefix"
         data-prefix
-        class="pointer-events-none absolute left-0 top-0 flex h-full items-center rounded-l-[2px] border-r border-border bg-element px-2.5 font-mono text-[11px] text-text-placeholder"
+        class="pointer-events-none absolute left-0 top-0 flex h-full items-center rounded-l-[2px] border-r border-border bg-element px-2.5 font-mono text-xs text-text-placeholder"
       >
         {{ prefix }}
       </span>
@@ -41,7 +41,7 @@ const isInvalid = computed(
         :value="modelValue"
         :aria-invalid="isInvalid || undefined"
         :class="[
-          'min-h-[38px] w-full rounded-[2px] border bg-bg py-2 font-sans text-sm text-text-hi outline-none transition-colors duration-[120ms] placeholder:text-text-placeholder',
+          'min-h-9.5 w-full rounded-[2px] border bg-bg py-2 font-sans text-sm text-text-hi outline-none transition-colors duration-[120ms] placeholder:text-text-placeholder',
           'disabled:cursor-not-allowed disabled:opacity-50',
           'file:border-0 file:bg-transparent file:font-mono file:text-xs file:text-text-hi',
           'focus:border-ac focus:ring-1 focus:ring-ac/20',
@@ -54,12 +54,12 @@ const isInvalid = computed(
       <span
         v-if="suffix"
         data-suffix
-        class="pointer-events-none absolute right-2.5 font-mono text-[11px] text-text-placeholder"
+        class="pointer-events-none absolute right-2.5 font-mono text-xs text-text-placeholder"
       >
         {{ suffix }}
       </span>
     </div>
-    <p v-if="error && isInvalid" class="font-mono text-[11px] text-err">{{ error }}</p>
-    <p v-else-if="hint" class="font-mono text-[11px] text-text-placeholder">{{ hint }}</p>
+    <p v-if="error && isInvalid" class="font-mono text-xs text-err">{{ error }}</p>
+    <p v-else-if="hint" class="font-mono text-xs text-text-placeholder">{{ hint }}</p>
   </div>
 </template>
