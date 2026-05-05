@@ -32,12 +32,12 @@ const isInvalid = computed(
       :class="[
         'min-h-[90px] w-full resize-y rounded-[2px] border bg-bg px-2.5 py-2 font-sans text-sm text-text-hi outline-none transition-colors duration-[120ms] placeholder:text-text-placeholder',
         'disabled:cursor-not-allowed disabled:opacity-50',
-        'focus:border-ac',
-        isInvalid ? 'border-err' : 'border-border',
+        'focus:border-ac focus:ring-1 focus:ring-ac/20',
+        isInvalid ? 'border-err focus:ring-err/20' : 'border-border',
       ]"
       @input="$emit('update:modelValue', ($event.target as HTMLTextAreaElement).value)"
     />
-    <p v-if="error && invalid" class="font-mono text-[11px] text-err">{{ error }}</p>
+    <p v-if="error && isInvalid" class="font-mono text-[11px] text-err">{{ error }}</p>
     <p v-else-if="hint" class="font-mono text-[11px] text-text-placeholder">{{ hint }}</p>
   </div>
 </template>

@@ -41,9 +41,9 @@ describe('Checkbox', () => {
       attrs: { 'aria-invalid': 'true' },
     })
 
-    expect(propWrapper.find('input').classes()).toContain('outline-err')
+    expect(propWrapper.find('input').classes()).toContain('border-err')
     expect(propWrapper.find('input').attributes('aria-invalid')).toBe('true')
-    expect(attrWrapper.find('input').classes()).toContain('outline-err')
+    expect(attrWrapper.find('input').classes()).toContain('border-err')
   })
 
   it('renders label and description when provided', () => {
