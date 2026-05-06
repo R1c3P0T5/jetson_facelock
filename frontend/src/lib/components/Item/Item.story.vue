@@ -6,7 +6,7 @@ defineOptions({ name: 'ItemStory' })
 </script>
 
 <template>
-  <Story title="Item" :layout="{ type: 'grid', width: 360 }">
+  <Story title="Layout / Item" :layout="{ type: 'grid', width: 360 }">
     <Variant title="Simple interactive list">
       <div class="rounded-[2px] border border-border bg-subtle p-1.5">
         <Item label="Open in timeline" :interactive="true" />

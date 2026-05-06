@@ -20,7 +20,7 @@ const active = ref('overview')
 </script>
 
 <template>
-  <Story title="Nav" :layout="{ type: 'grid', width: 280 }">
+  <Story title="Navigation / Nav" :layout="{ type: 'grid', width: 280 }">
     <Variant title="Items prop (controlled)">
       <Nav v-model="active" :items="items" />
     </Variant>

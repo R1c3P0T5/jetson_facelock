@@ -7,7 +7,7 @@ defineOptions({ name: 'MenuStory' })
 </script>
 
 <template>
-  <Story title="Menu" :layout="{ type: 'grid', width: 280 }">
+  <Story title="Overlay / Menu" :layout="{ type: 'grid', width: 280 }">
     <Variant title="Default">
       <Menu>
         <MenuItem label="Open in timeline" />

@@ -5,7 +5,7 @@ defineOptions({ name: 'ProgressStory' })
 </script>
 
 <template>
-  <Story title="Progress" :layout="{ type: 'grid', width: 400 }">
+  <Story title="Data / Progress" :layout="{ type: 'grid', width: 400 }">
     <Variant title="78%">
       <div class="grid gap-1.5">
         <Progress :value="78" label="Policy rollout" />

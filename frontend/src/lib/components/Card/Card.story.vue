@@ -6,7 +6,7 @@ defineOptions({ name: 'CardStory' })
 </script>
 
 <template>
-  <Story title="Card" :layout="{ type: 'grid', width: 480 }">
+  <Story title="Layout / Card" :layout="{ type: 'grid', width: 480 }">
     <Variant title="Body only">
       <Card>
         <p class="text-sm text-text-lo">Plain card with no header — just a bordered surface.</p>

@@ -5,7 +5,7 @@ defineOptions({ name: 'MetricStory' })
 </script>
 
 <template>
-  <Story title="Metric" :layout="{ type: 'grid', width: 480 }">
+  <Story title="Data / Metric" :layout="{ type: 'grid', width: 480 }">
     <Variant title="Grid (2-col)">
       <div class="grid grid-cols-2 gap-2.5">
         <Metric label="Today scans" value="1,284" delta="+3.1% vs yesterday" />

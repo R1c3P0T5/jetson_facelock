@@ -6,7 +6,7 @@ defineOptions({ name: 'AvatarStory' })
 </script>
 
 <template>
-  <Story title="Avatar" :layout="{ type: 'grid', width: 320 }">
+  <Story title="Data / Avatar" :layout="{ type: 'grid', width: 320 }">
     <Variant title="Sizes">
       <div class="flex items-end gap-3">
         <Avatar initials="SM" size="sm" />

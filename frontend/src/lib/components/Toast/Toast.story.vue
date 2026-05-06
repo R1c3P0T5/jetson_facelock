@@ -9,7 +9,7 @@ const { show } = useToast()
 </script>
 
 <template>
-  <Story title="Toast" :layout="{ type: 'single', iframe: false }">
+  <Story title="Overlay / Toast" :layout="{ type: 'single', iframe: false }">
     <Variant title="Trigger">
       <Toast />
       <div class="flex gap-2">

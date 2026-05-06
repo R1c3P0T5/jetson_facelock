@@ -25,7 +25,7 @@ const cameras: RadioGroupOption[] = [
 </script>
 
 <template>
-  <Story title="RadioGroup" :layout="{ type: 'grid', width: 340 }">
+  <Story title="Form / Radio Group" :layout="{ type: 'grid', width: 340 }">
     <Variant title="Default">
       <RadioGroup v-model="unlockMethod" name="unlock-method" :options="methods" />
     </Variant>

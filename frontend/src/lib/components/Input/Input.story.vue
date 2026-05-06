@@ -14,7 +14,7 @@ const search = ref('')
 </script>
 
 <template>
-  <Story title="Input" :layout="{ type: 'grid', width: 280 }">
+  <Story title="Form / Input" :layout="{ type: 'grid', width: 280 }">
     <Variant title="Default">
       <Input v-model="empty" placeholder="Device ID" />
     </Variant>

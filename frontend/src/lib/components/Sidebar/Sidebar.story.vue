@@ -20,7 +20,7 @@ const active = ref('overview')
 </script>
 
 <template>
-  <Story title="Sidebar" :layout="{ type: 'single', iframe: false }">
+  <Story title="Navigation / Sidebar" :layout="{ type: 'single', iframe: false }">
     <Variant title="Full sidebar">
       <div class="flex h-[600px]">
         <Sidebar brand="FaceGuard UI">

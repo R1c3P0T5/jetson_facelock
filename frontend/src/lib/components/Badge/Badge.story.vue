@@ -7,7 +7,7 @@ defineOptions({
 </script>
 
 <template>
-  <Story title="Badge" :layout="{ type: 'grid', width: 120 }">
+  <Story title="Primitives / Badge" :layout="{ type: 'grid', width: 120 }">
     <Variant title="Ok"><Badge variant="ok">Granted</Badge></Variant>
     <Variant title="Info"><Badge variant="info">Synced</Badge></Variant>
     <Variant title="Warn"><Badge variant="warn">Review</Badge></Variant>

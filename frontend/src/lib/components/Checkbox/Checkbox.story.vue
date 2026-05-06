@@ -13,7 +13,7 @@ const policy = ref(true)
 </script>
 
 <template>
-  <Story title="Checkbox" :layout="{ type: 'grid', width: 280 }">
+  <Story title="Form / Checkbox" :layout="{ type: 'grid', width: 280 }">
     <Variant title="Checked">
       <Checkbox v-model="device" label="Remember this device" />
     </Variant>

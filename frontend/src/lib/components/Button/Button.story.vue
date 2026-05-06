@@ -7,7 +7,7 @@ defineOptions({
 </script>
 
 <template>
-  <Story title="Button" :layout="{ type: 'grid', width: 160 }">
+  <Story title="Primitives / Button" :layout="{ type: 'grid', width: 160 }">
     <Variant title="Primary"><Button variant="primary">Primary</Button></Variant>
     <Variant title="Secondary"><Button variant="secondary">Secondary</Button></Variant>
     <Variant title="Outline"><Button variant="outline">Outline</Button></Variant>
