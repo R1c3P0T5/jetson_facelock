@@ -52,3 +52,22 @@ export { default as State } from './components/State/State.vue'
 export type { StateVariant } from './components/State/State.vue'
 
 export { default as Metric } from './components/Metric/Metric.vue'
+
+export { default as Item } from './components/Item/Item.vue'
+
+export { default as Empty } from './components/Empty/Empty.vue'
+
+export { default as Menu } from './components/Menu/Menu.vue'
+export { default as MenuItem } from './components/Menu/MenuItem.vue'
+export { default as MenuSeparator } from './components/Menu/MenuSeparator.vue'
+
+export { default as Accordion } from './components/Accordion/Accordion.vue'
+export { default as AccordionItem } from './components/Accordion/AccordionItem.vue'
+
+export { default as Table } from './components/Table/Table.vue'
+export type { SortDir, TableColumn } from './components/Table/Table.vue'
+export { default as Pagination } from './components/Table/Pagination.vue'
+
+export { default as Nav } from './components/Nav/Nav.vue'
+export { default as NavItem } from './components/Nav/NavItem.vue'
+export type { NavItemDef } from './components/Nav/Nav.vue'
