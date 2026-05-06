@@ -13,7 +13,7 @@ const policy = ref('Only owners can edit this note.')
 </script>
 
 <template>
-  <Story title="Textarea" :layout="{ type: 'grid', width: 360 }">
+  <Story title="Form / Textarea" :layout="{ type: 'grid', width: 360 }">
     <Variant title="Default">
       <Textarea v-model="notes" placeholder="Add device notes" />
     </Variant>

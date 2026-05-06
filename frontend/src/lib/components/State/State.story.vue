@@ -6,7 +6,7 @@ defineOptions({ name: 'StateStory' })
 </script>
 
 <template>
-  <Story title="State" :layout="{ type: 'grid', width: 400 }">
+  <Story title="Feedback / State" :layout="{ type: 'grid', width: 400 }">
     <Variant title="Empty (left-aligned)">
       <State title="No matched record">
         <p class="text-sm">Try another sample or refine camera angle.</p>

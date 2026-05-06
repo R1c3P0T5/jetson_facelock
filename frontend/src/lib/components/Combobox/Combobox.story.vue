@@ -19,7 +19,7 @@ const doors: ComboboxOption[] = [
 </script>
 
 <template>
-  <Story title="Combobox" :layout="{ type: 'grid', width: 340 }">
+  <Story title="Form / Combobox" :layout="{ type: 'grid', width: 340 }">
     <Variant title="Default">
       <Combobox v-model="door" :options="doors" />
     </Variant>

@@ -14,7 +14,7 @@ const tabs = [
 </script>
 
 <template>
-  <Story title="Tabs" :layout="{ type: 'single', iframe: false }">
+  <Story title="Navigation / Tabs" :layout="{ type: 'single', iframe: false }">
     <Variant title="Default">
       <Tabs v-model="active" :tabs="tabs">
         <template #live><p class="text-sm text-text-lo">Live log content here.</p></template>

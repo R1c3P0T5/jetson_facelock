@@ -19,7 +19,7 @@ const roles: NativeSelectOption[] = [
 </script>
 
 <template>
-  <Story title="NativeSelect" :layout="{ type: 'grid', width: 320 }">
+  <Story title="Form / Native Select" :layout="{ type: 'grid', width: 320 }">
     <Variant title="Default">
       <NativeSelect v-model="role" :options="roles" />
     </Variant>

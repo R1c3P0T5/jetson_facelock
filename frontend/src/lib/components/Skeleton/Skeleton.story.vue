@@ -5,7 +5,7 @@ defineOptions({ name: 'SkeletonStory' })
 </script>
 
 <template>
-  <Story title="Skeleton" :layout="{ type: 'grid', width: 400 }">
+  <Story title="Data / Skeleton" :layout="{ type: 'grid', width: 400 }">
     <Variant title="Default (text line)">
       <Skeleton />
     </Variant>

@@ -6,7 +6,7 @@ defineOptions({ name: 'AccordionStory' })
 </script>
 
 <template>
-  <Story title="Accordion" :layout="{ type: 'grid', width: 480 }">
+  <Story title="Layout / Accordion" :layout="{ type: 'grid', width: 480 }">
     <Variant title="Default (all closed)">
       <Accordion>
         <AccordionItem title="Policy mismatch">

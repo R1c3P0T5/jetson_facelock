@@ -7,7 +7,7 @@ const items = [{ label: 'ops' }, { label: 'access-control', href: '/access' }, {
 </script>
 
 <template>
-  <Story title="Breadcrumb" :layout="{ type: 'single', iframe: false }">
+  <Story title="Navigation / Breadcrumb" :layout="{ type: 'single', iframe: false }">
     <Variant title="Default">
       <Breadcrumb :items="items" />
     </Variant>

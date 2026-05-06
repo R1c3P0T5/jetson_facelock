@@ -6,7 +6,7 @@ defineOptions({ name: 'EmptyStory' })
 </script>
 
 <template>
-  <Story title="Empty" :layout="{ type: 'grid', width: 480 }">
+  <Story title="Feedback / Empty" :layout="{ type: 'grid', width: 480 }">
     <Variant title="With description + action">
       <Empty
         title="No matched record"

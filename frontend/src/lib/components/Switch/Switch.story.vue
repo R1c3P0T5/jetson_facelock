@@ -13,7 +13,7 @@ const disabled = ref(true)
 </script>
 
 <template>
-  <Story title="Switch" :layout="{ type: 'grid', width: 220 }">
+  <Story title="Form / Switch" :layout="{ type: 'grid', width: 220 }">
     <Variant title="On">
       <Switch v-model="on" label="Realtime mode" />
     </Variant>

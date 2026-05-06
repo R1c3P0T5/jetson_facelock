@@ -60,7 +60,7 @@ const resultVariant = (v: unknown): 'ok' | 'err' => (v === 'ok' ? 'ok' : 'err')
 </script>
 
 <template>
-  <Story title="Table" :layout="{ type: 'single', iframe: false }">
+  <Story title="Data / Table" :layout="{ type: 'single', iframe: false }">
     <Variant title="With sort + pagination">
       <div class="grid gap-3">
         <Table

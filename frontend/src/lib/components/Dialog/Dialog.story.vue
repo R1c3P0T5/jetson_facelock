@@ -10,7 +10,7 @@ const open = ref(false)
 </script>
 
 <template>
-  <Story title="Dialog" :layout="{ type: 'single', iframe: false }">
+  <Story title="Overlay / Dialog" :layout="{ type: 'single', iframe: false }">
     <Variant title="Controlled">
       <Dialog v-model:open="open" title="Apply policy update?">
         <p>This action updates camera policy rules for all edge nodes.</p>

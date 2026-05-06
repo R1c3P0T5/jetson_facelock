@@ -3,7 +3,7 @@ defineOptions({ name: 'TypographyStory' })
 </script>
 
 <template>
-  <Story title="Typography" :layout="{ type: 'single', iframe: false }">
+  <Story title="Foundations / Typography" :layout="{ type: 'single', iframe: false }">
     <Variant title="Type scale">
       <div class="grid gap-6 p-4">
         <!-- Headings -->

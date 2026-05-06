@@ -7,7 +7,7 @@ defineOptions({
 </script>
 
 <template>
-  <Story title="Alert" :layout="{ type: 'single', iframe: false }">
+  <Story title="Primitives / Alert" :layout="{ type: 'single', iframe: false }">
     <Variant title="Ok">
       <Alert variant="ok" title="Stream healthy"
         >All capture nodes synced in last 30 seconds.</Alert

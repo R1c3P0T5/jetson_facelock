@@ -19,7 +19,7 @@ const modes: SelectOption[] = [
 </script>
 
 <template>
-  <Story title="Select" :layout="{ type: 'grid', width: 320 }">
+  <Story title="Form / Select" :layout="{ type: 'grid', width: 320 }">
     <Variant title="Default">
       <Select v-model="mode" :options="modes" />
     </Variant>
