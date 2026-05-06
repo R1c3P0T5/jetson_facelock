@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { computed, useAttrs } from 'vue'
+import { useAttrs } from 'vue'
+
+import { useInvalid } from '../../composables/useInvalid'
 
 defineOptions({
   name: 'UiTextarea',
@@ -18,9 +20,7 @@ defineEmits<{
 }>()
 
 const attrs = useAttrs()
-const isInvalid = computed(
-  () => props.invalid || attrs['aria-invalid'] === true || attrs['aria-invalid'] === 'true',
-)
+const isInvalid = useInvalid(props, attrs)
 </script>
 
 <template>

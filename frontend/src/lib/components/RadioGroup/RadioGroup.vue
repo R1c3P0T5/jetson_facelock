@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, useAttrs } from 'vue'
 
+import { useInvalid } from '../../composables/useInvalid'
+
 defineOptions({
   name: 'UiRadioGroup',
   inheritAttrs: false,
@@ -35,9 +37,7 @@ const emit = defineEmits<{
 }>()
 
 const attrs = useAttrs()
-const isInvalid = computed(
-  () => props.invalid || attrs['aria-invalid'] === true || attrs['aria-invalid'] === 'true',
-)
+const isInvalid = useInvalid(props, attrs)
 const groupName = computed(() => props.name ?? `radio-group-${Math.random().toString(36).slice(2)}`)
 
 const update = (option: RadioGroupOption) => {
