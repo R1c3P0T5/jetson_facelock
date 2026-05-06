@@ -22,6 +22,11 @@ const emit = defineEmits<{
   'update:modelValue': [key: string]
   click: [item: NavItemDef]
 }>()
+
+const select = (item: NavItemDef) => {
+  emit('update:modelValue', item.key)
+  emit('click', item)
+}
 </script>
 
 <template>
@@ -39,10 +44,7 @@ const emit = defineEmits<{
             ? 'border-border bg-element text-text-hi'
             : 'border-transparent text-text-lo hover:border-border hover:bg-overlay hover:text-text-hi',
         ]"
-        @click.prevent="
-          emit('update:modelValue', item.key)
-          emit('click', item)
-        "
+        @click.prevent="select(item)"
       >
         <span
           :class="['h-1.5 w-1.5 rounded-full', modelValue === item.key ? 'bg-ac' : 'bg-border']"
