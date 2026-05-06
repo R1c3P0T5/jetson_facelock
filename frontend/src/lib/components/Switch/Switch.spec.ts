@@ -38,6 +38,19 @@ describe('Switch', () => {
     expect(wrapper.find('button').attributes('aria-checked')).toBe('true')
   })
 
+  it('uses a squared-off switch style', () => {
+    const wrapper = mount(Switch, { props: { modelValue: true } })
+    const button = wrapper.find('button')
+    const indicator = button.find('span')
+
+    expect(button.classes()).toEqual(expect.arrayContaining(['h-5.5', 'w-10.5', 'rounded-[2px]']))
+    expect(button.classes()).not.toContain('rounded-full')
+    expect(indicator.classes()).toEqual(
+      expect.arrayContaining(['h-3.5', 'w-3.5', 'rounded-[1px]', 'translate-x-5']),
+    )
+    expect(indicator.classes()).not.toContain('rounded-full')
+  })
+
   it('does not emit when disabled', async () => {
     const wrapper = mount(Switch, { props: { modelValue: false, disabled: true } })
 
