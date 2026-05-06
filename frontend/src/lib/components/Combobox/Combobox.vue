@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, useAttrs, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, useAttrs } from 'vue'
+
+import { useInvalid } from '../../composables/useInvalid'
 
 defineOptions({
   name: 'UiCombobox',
@@ -45,21 +47,12 @@ const selectedOption = computed(() =>
   props.options.find((option) => option.value === props.modelValue),
 )
 const inputValue = computed(() => (open.value ? query.value : (selectedOption.value?.label ?? '')))
-const isInvalid = computed(
-  () => props.invalid || attrs['aria-invalid'] === true || attrs['aria-invalid'] === 'true',
-)
+const isInvalid = useInvalid(props, attrs)
 const filteredOptions = computed(() => {
   const normalizedQuery = query.value.trim().toLowerCase()
   if (!normalizedQuery) return props.options
   return props.options.filter((option) => option.label.toLowerCase().includes(normalizedQuery))
 })
-
-watch(
-  () => props.modelValue,
-  () => {
-    if (!open.value) query.value = ''
-  },
-)
 
 const showOptions = () => {
   if (props.disabled) return

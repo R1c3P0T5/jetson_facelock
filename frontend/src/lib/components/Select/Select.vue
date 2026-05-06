@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, useAttrs } from 'vue'
 
+import { useInvalid } from '../../composables/useInvalid'
+
 defineOptions({
   name: 'UiSelect',
   inheritAttrs: false,
@@ -38,9 +40,7 @@ const emit = defineEmits<{
 const attrs = useAttrs()
 const root = ref<HTMLElement>()
 const open = ref(false)
-const isInvalid = computed(
-  () => props.invalid || attrs['aria-invalid'] === true || attrs['aria-invalid'] === 'true',
-)
+const isInvalid = useInvalid(props, attrs)
 const selectedOption = computed(() =>
   props.options.find((option) => option.value === props.modelValue),
 )
