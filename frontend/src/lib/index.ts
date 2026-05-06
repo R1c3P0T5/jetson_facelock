@@ -71,3 +71,5 @@ export { default as Pagination } from './components/Table/Pagination.vue'
 export { default as Nav } from './components/Nav/Nav.vue'
 export { default as NavItem } from './components/Nav/NavItem.vue'
 export type { NavItemDef } from './components/Nav/Nav.vue'
+
+export { default as Sidebar } from './components/Sidebar/Sidebar.vue'
