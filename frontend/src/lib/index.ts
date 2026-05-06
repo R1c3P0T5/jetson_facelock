@@ -34,3 +34,21 @@ export { default as Toast } from './components/Toast/Toast.vue'
 export { useToast } from './components/Toast/useToast'
 
 export { default as Dialog } from './components/Dialog/Dialog.vue'
+
+export { default as Card } from './components/Card/Card.vue'
+
+export { default as Skeleton } from './components/Skeleton/Skeleton.vue'
+
+export { default as Progress } from './components/Progress/Progress.vue'
+
+export { default as Avatar } from './components/Avatar/Avatar.vue'
+export { default as AvatarStack } from './components/Avatar/AvatarStack.vue'
+export type { AvatarSize } from './components/Avatar/Avatar.vue'
+
+export { default as Breadcrumb } from './components/Breadcrumb/Breadcrumb.vue'
+export type { BreadcrumbItem } from './components/Breadcrumb/Breadcrumb.vue'
+
+export { default as State } from './components/State/State.vue'
+export type { StateVariant } from './components/State/State.vue'
+
+export { default as Metric } from './components/Metric/Metric.vue'
