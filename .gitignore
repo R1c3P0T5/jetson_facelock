@@ -9,3 +9,7 @@
 
 # Git worktrees
 .worktrees/*
+
+# OpenAPI codegen
+openapi.json
+frontend/src/api/

@@ -15,7 +15,8 @@
     "lint": "run-s lint:*",
     "lint:oxlint": "oxlint . --fix",
     "lint:eslint": "eslint . --fix --cache",
-    "format": "oxfmt src/"
+    "format": "oxfmt src/",
+    "generate:api": "openapi-ts"
   },
   "dependencies": {
     "pinia": "^3.0.4",
@@ -23,6 +24,8 @@
     "vue-router": "^5.0.4"
   },
   "devDependencies": {
+    "@hey-api/openapi-ts": "0.97.1",
+    "@hey-api/vite-plugin": "0.3.1",
     "@histoire/plugin-vue": "1.0.0-beta.1",
     "@tailwindcss/vite": "^4.2.4",
     "@tsconfig/node24": "^24.0.4",

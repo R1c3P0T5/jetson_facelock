@@ -5,6 +5,7 @@ import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import tailwindcss from '@tailwindcss/vite'
+import { heyApiPlugin } from '@hey-api/vite-plugin'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -13,6 +14,13 @@ export default defineConfig({
     vue(),
     vueJsx(),
     vueDevTools(),
+    heyApiPlugin({
+      config: {
+        input: '../openapi.json',
+        output: 'src/api',
+        plugins: ['@hey-api/typescript', '@hey-api/sdk', '@hey-api/client-fetch'],
+      },
+    }),
   ],
   resolve: {
     alias: {
