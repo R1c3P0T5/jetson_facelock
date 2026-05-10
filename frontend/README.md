@@ -1,54 +1,94 @@
-# frontend
+# Jetson Facelock Frontend
 
-This template should help get you started developing with Vue 3 in Vite.
+Vue 3 dashboard for Jetson Facelock administration.
 
-## Recommended IDE Setup
+The frontend provides login, dashboard, face records, settings, access-log
+views, and shared UI components. It consumes a generated TypeScript client from
+the backend OpenAPI schema.
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+For repository-wide setup, pre-commit hooks, CI behavior, and generated API
+client workflow, see [../DEVELOPMENT.md](../DEVELOPMENT.md). This file focuses
+on frontend-specific structure and operating notes.
 
-## Recommended Browser Setup
+## Setup
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+Requirements: Node.js `^20.19.0 || >=22.12.0` and pnpm 10.x.
 
-## Type Support for `.vue` Imports in TS
+Install dependencies from the `frontend/` directory:
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
-
-```sh
+```bash
 pnpm install
 ```
 
-### Compile and Hot-Reload for Development
+Start the development server:
 
-```sh
+```bash
 pnpm dev
 ```
 
-### Type-Check, Compile and Minify for Production
+The Vite dev server runs at `http://localhost:5173`. Requests to `/api/*` are
+proxied to `http://localhost:8000`, so start the backend before using API-backed
+views.
 
-```sh
-pnpm build
+## Project Structure
+
+```text
+frontend/
+├── src/
+│   ├── api/              # Generated OpenAPI TypeScript client
+│   ├── layouts/          # Authenticated and unauthenticated page shells
+│   ├── lib/components/   # Shared UI components, tests, and Histoire stories
+│   ├── router/           # Vue Router configuration
+│   ├── stores/           # Pinia stores
+│   └── views/            # Route-level dashboard views
+├── public/               # Static assets
+├── openapi-ts.config.ts  # API client generator config
+├── vite.config.ts        # Vite plugins, aliases, and dev proxy
+└── package.json          # Scripts, dependencies, and engine constraints
 ```
 
-### Run Unit Tests with [Vitest](https://vitest.dev/)
+## Generated API Client
 
-```sh
-pnpm test:unit
+`src/api/` is generated from `../openapi.json` through `@hey-api/openapi-ts`.
+Do not hand-edit generated files.
+
+When backend API contracts change, run this from the repository root:
+
+```bash
+bash scripts/generate-api.sh
 ```
 
-### Lint with [ESLint](https://eslint.org/)
+Commit generated `frontend/src/api/` updates with the backend contract changes.
 
-```sh
+## Development Commands
+
+```bash
+pnpm dev            # start Vite at http://localhost:5173
+pnpm build          # type-check and build production assets
+pnpm test:unit      # run Vitest unit tests
 pnpm lint
+pnpm format
+pnpm type-check
+pnpm story:dev      # launch Histoire component stories
 ```
+
+## Tooling Notes
+
+Use [Vue - Official](https://marketplace.visualstudio.com/items?itemName=Vue.volar)
+for editor support. Type checking uses `vue-tsc` because TypeScript does not
+understand `.vue` files by itself.
+
+Shared components should keep colocated `*.spec.ts` tests and `*.story.vue`
+stories when practical. The generated API directory is ignored by frontend
+linting because it is machine-produced.
+
+## Troubleshooting
+
+If API calls fail in local development, confirm the backend is running at
+`http://localhost:8000` and that the request path starts with `/api`.
+
+If generated API imports are missing, run `bash scripts/generate-api.sh` from
+the repository root.
+
+If TypeScript cannot resolve `.vue` imports in the editor, use the Vue Official
+extension and disable older Vetur-based Vue tooling.
