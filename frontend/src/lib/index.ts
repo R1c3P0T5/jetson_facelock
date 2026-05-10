@@ -39,6 +39,8 @@ export { default as Card } from './components/Card/Card.vue'
 
 export { default as Skeleton } from './components/Skeleton/Skeleton.vue'
 
+export { default as Placeholder } from './components/Placeholder/Placeholder.vue'
+
 export { default as Progress } from './components/Progress/Progress.vue'
 
 export { default as Avatar } from './components/Avatar/Avatar.vue'
