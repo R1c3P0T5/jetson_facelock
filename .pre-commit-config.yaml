@@ -62,6 +62,7 @@ repos:
         language: system
         stages: [pre-commit]
         files: ^frontend/
+        exclude: ^frontend/.*\.md$
         pass_filenames: false
       - id: frontend-type-check
         name: frontend type-check
@@ -69,6 +70,7 @@ repos:
         language: system
         stages: [pre-commit]
         files: ^frontend/
+        exclude: ^frontend/.*\.md$
         pass_filenames: false
       - id: commit-message-check
         name: commit message check
