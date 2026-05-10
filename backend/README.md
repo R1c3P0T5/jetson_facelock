@@ -6,6 +6,10 @@ The backend provides FastAPI routes for user registration, JWT login,
 authenticated profile access, admin user management, and face embedding
 metadata updates.
 
+For repository-wide setup, pre-commit hooks, CI behavior, and generated API
+client workflow, see [../DEVELOPMENT.md](../DEVELOPMENT.md). This file focuses
+on backend-specific structure and operating notes.
+
 ## Setup
 
 Install development dependencies from the `backend/` directory:
@@ -21,7 +25,8 @@ cp .env.example .env
 python3 -c "import secrets; print(secrets.token_hex(32))"
 ```
 
-Set the generated value as `SECRET_KEY` in `.env`. See [Environment Variables](#environment-variables) for all options.
+Set the generated value as `SECRET_KEY` in `.env`. See
+[../DEVELOPMENT.md](../DEVELOPMENT.md) for the complete environment reference.
 
 Initialize or migrate the database:
 
@@ -35,7 +40,9 @@ Start the development server:
 uv run fastapi dev main.py
 ```
 
-Equivalent uvicorn command:
+The API is available at `http://localhost:8000`.
+
+Equivalent uvicorn command, useful when debugging server startup directly:
 
 ```bash
 uv run uvicorn main:app --reload
@@ -43,25 +50,18 @@ uv run uvicorn main:app --reload
 
 ## Environment Variables
 
-`SECRET_KEY` is required and must be at least 32 characters.
+The complete environment reference is in [../DEVELOPMENT.md](../DEVELOPMENT.md).
+Backend-specific notes:
 
-`DATABASE_URL` defaults to:
+- `SECRET_KEY` is required and must be at least 32 characters.
+- `DATABASE_URL` defaults to `sqlite+aiosqlite:///./jetson_facelock.db`, which
+  points to a SQLite database in the `backend/` directory.
+- Tests override `DATABASE_URL` with isolated temporary databases and do not use
+  the production or development database.
+- `DEFAULT_ADMIN_USERNAME` and `DEFAULT_ADMIN_PASSWORD` must be set together to
+  seed an admin user during app startup.
 
-```text
-sqlite+aiosqlite:///./jetson_facelock.db
-```
-
-The default points to a SQLite database in the `backend/` directory. Tests
-override this with isolated temporary databases and do not use the production or
-development database.
-
-`DEBUG` controls debug mode and defaults to `False`.
-
-`JWT_ALGORITHM` defaults to `HS256`.
-
-`JWT_EXPIRATION_HOURS` defaults to `24`.
-
-Optional default admin seed:
+Optional default admin seed example:
 
 ```env
 DEFAULT_ADMIN_USERNAME=admin
@@ -79,15 +79,15 @@ already exist. Existing users are not overwritten.
 
 ```text
 backend/
-|-- main.py              # FastAPI app factory and lifespan integration
-|-- src/
-|   |-- auth/            # Registration, login, JWT utilities, auth dependencies
-|   |-- users/           # User model, schemas, service layer, CRUD routes
-|   `-- core/            # Settings, database session setup, exceptions, security
-|-- tests/               # Unit and integration tests
-|-- alembic/             # Database migrations
-|-- .env.example         # Environment template
-`-- pyproject.toml       # Dependencies and tool configuration
+├── main.py              # FastAPI app factory and lifespan integration
+├── src/
+│   ├── auth/            # Registration, login, JWT utilities, auth dependencies
+│   ├── users/           # User model, schemas, service layer, CRUD routes
+│   └── core/            # Settings, database session setup, exceptions, security
+├── tests/               # Unit and integration tests
+├── alembic/             # Database migrations
+├── .env.example         # Environment template
+└── pyproject.toml       # Dependencies and tool configuration
 ```
 
 ## API Documentation
