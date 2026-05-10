@@ -44,6 +44,10 @@ jobs:
         shell: bash
         run: pnpm --dir frontend install --frozen-lockfile
 
+      - name: Generate openapi.json and frontend API client
+        shell: bash
+        run: bash scripts/generate-api.sh
+
       - name: Run pre-commit
         shell: bash
         run: pre-commit run --all-files --show-diff-on-failure
