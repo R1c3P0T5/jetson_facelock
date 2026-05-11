@@ -31,10 +31,10 @@ This repository is intended for collaborators building the system, improving the
 └───────────┬────────────┘
             │
             ▼
-┌───────────────────────┐      ┌────────────────────────┐
-│    FastAPI backend    │◄────►│    Vue 3 dashboard     │
-│  auth · users · logs  │      │    admin interface     │
-└───────────┬───────────┘      └────────────────────────┘
+┌─────────────────────────────┐      ┌────────────────────────┐
+│       FastAPI backend       │◄────►│    Vue 3 dashboard     │
+│  auth · face · logs · mqtt  │      │    admin interface     │
+└───────────┬─────────────────┘      └────────────────────────┘
             │
             ▼
 ┌───────────────────────┐
@@ -45,7 +45,7 @@ This repository is intended for collaborators building the system, improving the
        Lock hardware
 ```
 
-The backend owns authentication, user records, role checks, access logs, and the OpenAPI contract. The frontend consumes the generated TypeScript client and provides the administrative dashboard. The firmware target is the networked lock-controller surface for the Pico W. The scripts directory contains the face-registration, recognition, and training utilities used around the Jetson runtime.
+The backend owns authentication, user records, role checks, face-embedding verification, access logging, MQTT door-control publishing, and the OpenAPI contract. The frontend consumes the generated TypeScript client and provides the administrative dashboard. The firmware target is the networked lock-controller surface for the Pico W. The scripts directory contains the face-registration, recognition, and training utilities used around the Jetson runtime.
 
 ## Features
 
@@ -60,7 +60,7 @@ The backend owns authentication, user records, role checks, access logs, and the
 
 | Layer | Technologies |
 | ----- | ------------ |
-| Backend | [FastAPI](https://fastapi.tiangolo.com/), [SQLModel](https://sqlmodel.tiangolo.com/), SQLAlchemy async, SQLite, Alembic, JWT, Argon2id |
+| Backend | [FastAPI](https://fastapi.tiangolo.com/), [SQLModel](https://sqlmodel.tiangolo.com/), SQLAlchemy async, SQLite, Alembic, JWT, Argon2id, NumPy, aiomqtt |
 | Frontend | [Vue 3](https://vuejs.org/), [Vite](https://vite.dev/), Pinia, Vue Router, TypeScript, Tailwind CSS, Histoire |
 | Firmware | C/C++, [Pico SDK](https://github.com/raspberrypi/pico-sdk), lwIP, CMake |
 | Face tools | Python scripts for capture, recognition, SVM training, and model/data preparation |
