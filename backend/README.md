@@ -1,11 +1,11 @@
 # Jetson Facelock Backend
 
 FastAPI service handling user authentication, admin user management,
-face-embedding verification, access logging, and MQTT door-control publishing
+face-embedding verification, audit logging, and MQTT door-control publishing
 for the Jetson Facelock system.
 
 The backend receives face embeddings from the Jetson, matches them against
-stored user embeddings, writes an access log entry, and publishes the door
+stored user embeddings, writes an audit log entry, and publishes the door
 command on a granted match. See [`../README.md`](../README.md) for the
 system-level architecture.
 
@@ -68,7 +68,7 @@ backend/
 │   ├── auth/            # Registration, login, JWT utilities, auth dependencies
 │   ├── users/           # User model, schemas, service layer, CRUD routes
 │   ├── face/            # Face verification endpoint and cosine similarity logic
-│   ├── access_logs/     # Access log model, routes, and query service
+│   ├── audit/           # Audit log model, routes, and query service
 │   └── core/            # Settings, database session setup, exceptions, security
 ├── tests/               # Unit and integration tests
 ├── alembic/             # Database migrations
