@@ -1,4 +1,3 @@
-from datetime import datetime, timezone
 from uuid import UUID
 
 from sqlalchemy import func
@@ -6,26 +5,14 @@ from sqlalchemy.exc import IntegrityError
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from src.core.access import require_self_or_admin
 from src.core.exceptions import (
     EmailAlreadyInUseError,
-    PermissionDeniedError,
     UserNotFoundError,
 )
-from src.users.models import User, UserRole
+from src.core.utils import utc_now_naive
+from src.users.models import User
 from src.users.schemas import UserUpdateRequest
-
-
-def _now_utc_naive() -> datetime:
-    return datetime.now(timezone.utc).replace(tzinfo=None)
-
-
-def _can_modify(user_id: UUID, current_user: User) -> bool:
-    return current_user.id == user_id or current_user.role == UserRole.ADMIN
-
-
-def _ensure_can_modify(user_id: UUID, current_user: User) -> None:
-    if not _can_modify(user_id, current_user):
-        raise PermissionDeniedError()
 
 
 async def get_user_by_id(user_id: UUID, session: AsyncSession) -> User:
@@ -41,14 +28,14 @@ async def update_user(
     session: AsyncSession,
     current_user: User,
 ) -> User:
-    _ensure_can_modify(user_id, current_user)
+    require_self_or_admin(current_user, user_id)
     user = await get_user_by_id(user_id, session)
 
     if request.full_name is not None:
         user.full_name = request.full_name
     if request.email is not None:
         user.email = request.email
-    user.updated_at = _now_utc_naive()
+    user.updated_at = utc_now_naive()
 
     try:
         session.add(user)
@@ -68,7 +55,7 @@ async def delete_user(
     session: AsyncSession,
     current_user: User,
 ) -> None:
-    _ensure_can_modify(user_id, current_user)
+    require_self_or_admin(current_user, user_id)
     user = await get_user_by_id(user_id, session)
 
     await session.delete(user)

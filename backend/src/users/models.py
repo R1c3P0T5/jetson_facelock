@@ -4,6 +4,8 @@ from uuid import UUID, uuid4
 
 from sqlmodel import Field, SQLModel
 
+from src.core.utils import utc_now_naive
+
 
 class UserRole(str, Enum):
     USER = "user"
@@ -20,5 +22,5 @@ class User(SQLModel, table=True):
     full_name: str = Field(nullable=False)
     role: UserRole = Field(default=UserRole.USER, nullable=False)
     is_active: bool = Field(default=True, nullable=False)
-    created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
-    updated_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+    created_at: datetime = Field(default_factory=utc_now_naive, nullable=False)
+    updated_at: datetime = Field(default_factory=utc_now_naive, nullable=False)

@@ -4,8 +4,9 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Path, status
 
 from src.auth.dependencies import get_current_user
+from src.core.access import require_self_or_admin
 from src.core.database import SessionDep
-from src.core.exceptions import InvalidFaceVectorError, PermissionDeniedError
+from src.core.exceptions import InvalidFaceVectorError
 from src.faces.models import FaceVector
 from src.faces.schemas import (
     FaceVectorCreateRequest,
@@ -15,19 +16,10 @@ from src.faces.schemas import (
     RecognizeResponse,
 )
 from src.faces.service import add_face_vector, delete_face_vector, list_face_vectors
-from src.users.models import User, UserRole
+from src.users.models import User
 
 
 router = APIRouter(tags=["faces"])
-
-
-def _can_access(current_user: User, user_id: UUID) -> bool:
-    return current_user.id == user_id or current_user.role == UserRole.ADMIN
-
-
-def _ensure_can_access(current_user: User, user_id: UUID) -> None:
-    if not _can_access(current_user, user_id):
-        raise PermissionDeniedError()
 
 
 def _to_metadata(face: FaceVector) -> FaceVectorMetadata:
@@ -49,7 +41,7 @@ async def list_user_face_vectors(
     session: SessionDep,
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> FaceVectorListResponse:
-    _ensure_can_access(current_user, user_id)
+    require_self_or_admin(current_user, user_id)
     faces = await list_face_vectors(user_id, session)
     return FaceVectorListResponse(
         total=len(faces),
@@ -69,7 +61,7 @@ async def add_user_face_vector(
     session: SessionDep,
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> FaceVectorMetadata:
-    _ensure_can_access(current_user, user_id)
+    require_self_or_admin(current_user, user_id)
     try:
         embedding = request.decode_embedding()
     except ValueError as exc:
@@ -90,7 +82,7 @@ async def delete_user_face_vector(
     session: SessionDep,
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> None:
-    _ensure_can_access(current_user, user_id)
+    require_self_or_admin(current_user, user_id)
     await delete_face_vector(face_id, user_id, session)
 
 
