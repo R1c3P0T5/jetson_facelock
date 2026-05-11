@@ -32,7 +32,6 @@ def test_user_table_has_expected_columns_and_constraints() -> None:
         "email",
         "password_hash",
         "full_name",
-        "face_embedding",
         "role",
         "is_active",
         "created_at",

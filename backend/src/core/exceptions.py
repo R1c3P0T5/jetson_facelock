@@ -54,8 +54,3 @@ class PasswordValidationError(BaseAPIError):
 class InvalidTokenError(BaseAPIError):
     status_code = 401
     detail = "Invalid or expired token"
-
-
-class InvalidFaceEmbeddingError(BaseAPIError):
-    status_code = 400
-    detail = "Invalid or oversized face embedding data"

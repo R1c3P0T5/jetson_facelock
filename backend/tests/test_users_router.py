@@ -1,4 +1,3 @@
-from base64 import b64encode
 from uuid import uuid4
 
 import pytest
@@ -7,8 +6,6 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.users.models import User, UserRole
 from src.users.schemas import (
-    UserFaceEmbeddingResponse,
-    UserFaceEmbeddingUpdateRequest,
     UserListResponse,
     UserUpdateRequest,
 )
@@ -18,7 +15,6 @@ async def create_user(
     session: AsyncSession,
     *,
     role: UserRole = UserRole.USER,
-    face_embedding: bytes | None = None,
 ) -> User:
     user = User(
         username=f"user_{uuid4().hex[:12]}",
@@ -26,7 +22,6 @@ async def create_user(
         password_hash="hash",
         full_name="Router User",
         role=role,
-        face_embedding=face_embedding,
     )
     session.add(user)
     await session.commit()
@@ -48,8 +43,6 @@ def test_users_router_exposes_expected_routes() -> None:
     assert ("/api/users/{user_id}", ("GET",)) in routes
     assert ("/api/users/{user_id}", ("PUT",)) in routes
     assert ("/api/users/{user_id}", ("DELETE",)) in routes
-    assert ("/api/users/{user_id}/face", ("GET",)) in routes
-    assert ("/api/users/{user_id}/face", ("PUT",)) in routes
 
 
 def test_main_app_includes_users_routes() -> None:
@@ -63,7 +56,6 @@ def test_main_app_includes_users_routes() -> None:
 
     assert ("/api/users", ("GET",)) in routes
     assert ("/api/users/{user_id}", ("GET",)) in routes
-    assert ("/api/users/{user_id}/face", ("PUT",)) in routes
 
 
 @pytest.mark.asyncio
@@ -107,62 +99,6 @@ async def test_delete_user_endpoint_returns_none(
     user = await create_user(database_session)
 
     assert await delete_user_profile(user.id, database_session, user) is None
-
-
-@pytest.mark.asyncio
-async def test_update_face_endpoint_decodes_base64_and_returns_size(
-    database_session: AsyncSession,
-) -> None:
-    from src.users.router import update_user_face
-
-    user = await create_user(database_session)
-    embedding = b"face-bytes"
-
-    response = await update_user_face(
-        user.id,
-        UserFaceEmbeddingUpdateRequest(
-            face_embedding=b64encode(embedding).decode("ascii")
-        ),
-        database_session,
-        user,
-    )
-
-    assert isinstance(response, UserFaceEmbeddingResponse)
-    assert response.face_embedding_size == len(embedding)
-
-
-@pytest.mark.asyncio
-async def test_update_face_endpoint_rejects_invalid_base64(
-    database_session: AsyncSession,
-) -> None:
-    from src.core.exceptions import InvalidFaceEmbeddingError
-    from src.users.router import update_user_face
-
-    user = await create_user(database_session)
-
-    with pytest.raises(InvalidFaceEmbeddingError) as exc_info:
-        await update_user_face(
-            user.id,
-            UserFaceEmbeddingUpdateRequest(face_embedding="not base64"),
-            database_session,
-            user,
-        )
-
-    assert exc_info.value.status_code == 400
-
-
-@pytest.mark.asyncio
-async def test_get_face_endpoint_returns_existing_size(
-    database_session: AsyncSession,
-) -> None:
-    from src.users.router import get_user_face
-
-    embedding = b"face-bytes"
-    user = await create_user(database_session, face_embedding=embedding)
-
-    response = await get_user_face(user.id, database_session, user)
-
-    assert response.face_embedding_size == len(embedding)
 
 
 @pytest.mark.asyncio

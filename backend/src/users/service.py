@@ -12,7 +12,7 @@ from src.core.exceptions import (
     UserNotFoundError,
 )
 from src.users.models import User, UserRole
-from src.users.schemas import MAX_FACE_EMBEDDING_SIZE, UserUpdateRequest
+from src.users.schemas import UserUpdateRequest
 
 
 def _now_utc_naive() -> datetime:
@@ -73,37 +73,6 @@ async def delete_user(
 
     await session.delete(user)
     await session.commit()
-
-
-async def update_face_embedding(
-    user_id: UUID,
-    face_embedding: bytes,
-    session: AsyncSession,
-    current_user: User,
-) -> User:
-    _ensure_can_modify(user_id, current_user)
-    if len(face_embedding) > MAX_FACE_EMBEDDING_SIZE:
-        raise ValueError(
-            "Face embedding too large: "
-            f"{len(face_embedding)} bytes > {MAX_FACE_EMBEDDING_SIZE} bytes"
-        )
-
-    user = await get_user_by_id(user_id, session)
-    user.face_embedding = face_embedding
-    user.updated_at = _now_utc_naive()
-
-    session.add(user)
-    await session.commit()
-    await session.refresh(user)
-
-    return user
-
-
-async def get_face_embedding(user_id: UUID, session: AsyncSession) -> bytes:
-    user = await get_user_by_id(user_id, session)
-    if user.face_embedding is None:
-        raise UserNotFoundError(detail="Face embedding not found")
-    return user.face_embedding
 
 
 async def list_users(
