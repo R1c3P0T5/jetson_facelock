@@ -58,7 +58,8 @@ When backend API contracts change, run this from the repository root:
 bash scripts/generate-api.sh
 ```
 
-Commit generated `frontend/src/api/` updates with the backend contract changes.
+Commit backend contract or generator configuration changes, and regenerate the
+client locally when needed.
 
 ## Development Commands
 

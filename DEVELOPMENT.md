@@ -47,7 +47,11 @@ API requests to `/api/*` are proxied to `http://localhost:8000` by the Vite dev 
 
 ## API Client Workflow
 
-The frontend API client is generated from the backend OpenAPI schema. When backend routes, request models, response models, or authentication contracts change, regenerate the client before committing:
+The frontend API client is generated from the backend OpenAPI schema into
+`frontend/src/api/`. This directory is intentionally ignored by Git.
+
+When backend routes, request models, response models, or authentication
+contracts change, regenerate the client locally before running frontend checks:
 
 ```bash
 bash scripts/generate-api.sh
@@ -55,7 +59,8 @@ bash scripts/generate-api.sh
 
 The script exports the current backend OpenAPI schema to `openapi.json`, then runs the frontend generator to update `frontend/src/api/`.
 
-Commit backend contract changes and generated frontend API files together. CI reruns this workflow and fails if the generated client differs from the committed API contract.
+Commit backend contract changes and any OpenAPI schema or generator
+configuration updates, not the generated `frontend/src/api/` files.
 
 ## Pre-commit Hooks
 
@@ -94,9 +99,9 @@ Sets up Python + uv + Node.js + pnpm, regenerates the API client with `scripts/g
 This workflow fails if:
 
 - Any linter, formatter, or type checker reports an error.
-- The committed `frontend/src/api/` files differ from what `generate-api.sh` produces — meaning the API contract and the generated client are out of sync.
+- API generation fails, leaving frontend checks without the generated `frontend/src/api/` client.
 
-If you see this failure locally, run `bash scripts/generate-api.sh` and commit the updated `frontend/src/api/` files together with your backend changes.
+If you see this failure locally, run `bash scripts/generate-api.sh`, verify the frontend checks pass, and commit only the source files that define the API contract or generator behavior.
 
 ### `commit-message.yml`
 
