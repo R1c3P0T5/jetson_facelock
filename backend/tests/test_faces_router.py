@@ -201,10 +201,14 @@ async def test_delete_nonexistent_face_returns_not_found(
 @pytest.mark.asyncio
 async def test_recognize_valid_embedding_returns_unmatched_response(
     client: AsyncClient,
+    database_session: AsyncSession,
 ) -> None:
+    _, token = await _create_user_with_token(database_session)
+
     response = await client.post(
         "/api/faces/recognize",
         json={"embedding": _make_b64_embedding()},
+        headers=_auth_headers(token),
     )
 
     assert response.status_code == 200
@@ -216,10 +220,16 @@ async def test_recognize_valid_embedding_returns_unmatched_response(
 
 
 @pytest.mark.asyncio
-async def test_recognize_rejects_invalid_embedding(client: AsyncClient) -> None:
+async def test_recognize_rejects_invalid_embedding(
+    client: AsyncClient,
+    database_session: AsyncSession,
+) -> None:
+    _, token = await _create_user_with_token(database_session)
+
     response = await client.post(
         "/api/faces/recognize",
         json={"embedding": "not base64!!!"},
+        headers=_auth_headers(token),
     )
 
     assert response.status_code == 400
