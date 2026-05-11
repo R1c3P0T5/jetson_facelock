@@ -33,9 +33,10 @@ async def _create_user(session: AsyncSession) -> User:
 async def test_list_face_vectors_empty(database_session: AsyncSession) -> None:
     user = await _create_user(database_session)
 
-    result = await list_face_vectors(user.id, database_session)
+    total, faces = await list_face_vectors(user.id, database_session)
 
-    assert result == []
+    assert total == 0
+    assert faces == []
 
 
 @pytest.mark.asyncio
@@ -76,9 +77,10 @@ async def test_list_face_vectors_returns_all_for_user(
     second = await add_face_vector(user.id, _make_embedding(), "側面", database_session)
     await add_face_vector(other_user.id, _make_embedding(), "other", database_session)
 
-    result = await list_face_vectors(user.id, database_session)
+    total, faces = await list_face_vectors(user.id, database_session)
 
-    assert {face.id for face in result} == {first.id, second.id}
+    assert total == 2
+    assert {face.id for face in faces} == {first.id, second.id}
 
 
 @pytest.mark.asyncio
@@ -88,7 +90,9 @@ async def test_delete_face_vector_removes_it(database_session: AsyncSession) -> 
 
     await delete_face_vector(face.id, user.id, database_session)
 
-    assert await list_face_vectors(user.id, database_session) == []
+    total, faces = await list_face_vectors(user.id, database_session)
+    assert total == 0
+    assert faces == []
 
 
 @pytest.mark.asyncio

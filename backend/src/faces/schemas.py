@@ -37,7 +37,7 @@ class _EmbeddingRequest(BaseModel):
 
 
 class FaceVectorCreateRequest(_EmbeddingRequest):
-    label: str | None = Field(default=None, max_length=64)
+    label: str | None = Field(default=None, min_length=1, max_length=64)
 
 
 class FaceVectorMetadata(BaseModel):
@@ -52,7 +52,9 @@ class FaceVectorMetadata(BaseModel):
 
 
 class FaceVectorListResponse(BaseModel):
-    total: int = Field(description="Total number of face vectors.")
+    total: int = Field(description="Total number of face vectors stored.")
+    skip: int = Field(description="Number of face vectors skipped.")
+    limit: int = Field(description="Maximum face vectors requested.")
     faces: list[FaceVectorMetadata] = Field(description="Face vectors.")
 
 

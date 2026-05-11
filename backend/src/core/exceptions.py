@@ -64,3 +64,8 @@ class FaceVectorNotFoundError(BaseAPIError):
 class InvalidFaceVectorError(BaseAPIError):
     status_code = 400
     detail = "Invalid face vector data"
+
+
+class FaceVectorLimitExceededError(BaseAPIError):
+    status_code = 422
+    detail = "Face vector limit reached (max 100 per user)"
