@@ -1,10 +1,13 @@
 # Jetson Facelock Backend
 
-User authentication and face recognition API for Jetson devices.
+FastAPI service handling user authentication, admin user management,
+face-embedding verification, access logging, and MQTT door-control publishing
+for the Jetson Facelock system.
 
-The backend provides FastAPI routes for user registration, JWT login,
-authenticated profile access, admin user management, and face embedding
-metadata updates.
+The backend receives face embeddings from the Jetson, matches them against
+stored user embeddings, writes an access log entry, and publishes the door
+command on a granted match. See [`../README.md`](../README.md) for the
+system-level architecture.
 
 For repository-wide setup, pre-commit hooks, CI behavior, and generated API
 client workflow, see [../DEVELOPMENT.md](../DEVELOPMENT.md). This file focuses
@@ -48,32 +51,13 @@ Equivalent uvicorn command, useful when debugging server startup directly:
 uv run uvicorn main:app --reload
 ```
 
-## Environment Variables
+## Environment
 
-The complete environment reference is in [../DEVELOPMENT.md](../DEVELOPMENT.md).
-Backend-specific notes:
+See [`.env.example`](./.env.example) for all variables and
+[`../DEVELOPMENT.md`](../DEVELOPMENT.md) for the complete reference.
 
-- `SECRET_KEY` is required and must be at least 32 characters.
-- `DATABASE_URL` defaults to `sqlite+aiosqlite:///./jetson_facelock.db`, which
-  points to a SQLite database in the `backend/` directory.
-- Tests override `DATABASE_URL` with isolated temporary databases and do not use
-  the production or development database.
-- `DEFAULT_ADMIN_USERNAME` and `DEFAULT_ADMIN_PASSWORD` must be set together to
-  seed an admin user during app startup.
-
-Optional default admin seed example:
-
-```env
-DEFAULT_ADMIN_USERNAME=admin
-DEFAULT_ADMIN_PASSWORD=<set-a-strong-admin-password>
-DEFAULT_ADMIN_FULL_NAME=Administrator
-DEFAULT_ADMIN_EMAIL=admin@example.com
-```
-
-`DEFAULT_ADMIN_USERNAME` and `DEFAULT_ADMIN_PASSWORD` must be set together.
-`DEFAULT_ADMIN_FULL_NAME` and `DEFAULT_ADMIN_EMAIL` are optional. When enabled,
-the app lifespan creates the admin user on startup if that username does not
-already exist. Existing users are not overwritten.
+Setting `DEFAULT_ADMIN_USERNAME` and `DEFAULT_ADMIN_PASSWORD` together seeds an
+admin user at startup; existing users are not overwritten.
 
 ## Project Structure
 
@@ -83,6 +67,8 @@ backend/
 ├── src/
 │   ├── auth/            # Registration, login, JWT utilities, auth dependencies
 │   ├── users/           # User model, schemas, service layer, CRUD routes
+│   ├── face/            # Face verification endpoint and cosine similarity logic
+│   ├── access_logs/     # Access log model, routes, and query service
 │   └── core/            # Settings, database session setup, exceptions, security
 ├── tests/               # Unit and integration tests
 ├── alembic/             # Database migrations
@@ -154,6 +140,8 @@ uv run pytest tests --cov
 - Alembic migrations
 - Argon2id password hashing through `argon2-cffi`
 - JWT authentication through `python-jose`
+- NumPy for embedding decoding and cosine similarity
+- aiomqtt for async MQTT publishing to HiveMQ Cloud
 - pytest, pytest-asyncio, pytest-cov, httpx, pyright, and ruff
 
 ## Troubleshooting
