@@ -13,6 +13,7 @@ from main import app
 from src.auth.utils import hash_password
 from src.core.config import get_settings
 from src.core.database import get_session
+from src.faces.models import FaceVector as _FaceVector  # noqa: F401
 from src.users.models import User, UserRole
 
 
