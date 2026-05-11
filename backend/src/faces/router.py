@@ -1,7 +1,7 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Path, status
+from fastapi import APIRouter, Depends, Path, Query, status
 
 from src.auth.dependencies import get_current_user
 from src.core.access import require_self_or_admin
@@ -15,7 +15,12 @@ from src.faces.schemas import (
     RecognizeRequest,
     RecognizeResponse,
 )
-from src.faces.service import add_face_vector, delete_face_vector, list_face_vectors
+from src.faces.service import (
+    MAX_FACE_VECTORS_PER_USER,
+    add_face_vector,
+    delete_face_vector,
+    list_face_vectors,
+)
 from src.users.models import User
 
 
@@ -40,11 +45,27 @@ async def list_user_face_vectors(
     user_id: Annotated[UUID, Path(description="User ID whose face vectors to list.")],
     session: SessionDep,
     current_user: Annotated[User, Depends(get_current_user)],
+    skip: Annotated[
+        int,
+        Query(
+            ge=0, description="Number of face vectors to skip before returning results."
+        ),
+    ] = 0,
+    limit: Annotated[
+        int,
+        Query(
+            ge=1,
+            le=MAX_FACE_VECTORS_PER_USER,
+            description="Maximum number of face vectors to return.",
+        ),
+    ] = MAX_FACE_VECTORS_PER_USER,
 ) -> FaceVectorListResponse:
     require_self_or_admin(current_user, user_id)
-    faces = await list_face_vectors(user_id, session)
+    total, faces = await list_face_vectors(user_id, session, skip=skip, limit=limit)
     return FaceVectorListResponse(
-        total=len(faces),
+        total=total,
+        skip=skip,
+        limit=limit,
         faces=[_to_metadata(face) for face in faces],
     )
 

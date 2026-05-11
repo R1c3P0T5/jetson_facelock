@@ -1,22 +1,40 @@
 from uuid import UUID
 
+from sqlalchemy import func
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.core.exceptions import FaceVectorNotFoundError
+from src.core.exceptions import FaceVectorLimitExceededError, FaceVectorNotFoundError
 from src.faces.models import FaceVector
 
 
 MAX_FACE_VECTORS_PER_USER = 100
 
 
-async def list_face_vectors(user_id: UUID, session: AsyncSession) -> list[FaceVector]:
-    result = await session.exec(
-        select(FaceVector)
-        .where(FaceVector.user_id == user_id)
-        .limit(MAX_FACE_VECTORS_PER_USER)
+async def list_face_vectors(
+    user_id: UUID,
+    session: AsyncSession,
+    skip: int = 0,
+    limit: int = MAX_FACE_VECTORS_PER_USER,
+) -> tuple[int, list[FaceVector]]:
+    total = (
+        await session.exec(
+            select(func.count())
+            .select_from(FaceVector)
+            .where(FaceVector.user_id == user_id)
+        )
+    ).one()
+    faces = list(
+        (
+            await session.exec(
+                select(FaceVector)
+                .where(FaceVector.user_id == user_id)
+                .offset(skip)
+                .limit(limit)
+            )
+        ).all()
     )
-    return list(result.all())
+    return total, faces
 
 
 async def add_face_vector(
@@ -25,6 +43,15 @@ async def add_face_vector(
     label: str | None,
     session: AsyncSession,
 ) -> FaceVector:
+    count = (
+        await session.exec(
+            select(func.count())
+            .select_from(FaceVector)
+            .where(FaceVector.user_id == user_id)
+        )
+    ).one()
+    if count >= MAX_FACE_VECTORS_PER_USER:
+        raise FaceVectorLimitExceededError()
     fv = FaceVector(user_id=user_id, embedding=embedding, label=label)
     session.add(fv)
     await session.commit()

@@ -51,7 +51,11 @@ async def test_list_faces_empty_returns_total_and_faces(
     )
 
     assert response.status_code == 200
-    assert response.json() == {"total": 0, "faces": []}
+    data = response.json()
+    assert data["total"] == 0
+    assert data["faces"] == []
+    assert data["skip"] == 0
+    assert data["limit"] == 100
 
 
 @pytest.mark.asyncio
@@ -100,7 +104,11 @@ async def test_admin_can_list_faces_for_any_user(
     )
 
     assert response.status_code == 200
-    assert response.json() == {"total": 0, "faces": []}
+    data = response.json()
+    assert data["total"] == 0
+    assert data["faces"] == []
+    assert data["skip"] == 0
+    assert data["limit"] == 100
 
 
 @pytest.mark.asyncio
