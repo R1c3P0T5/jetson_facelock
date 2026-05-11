@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from src.users.models import UserRole
 
@@ -85,41 +85,3 @@ class TokenResponse(BaseModel):
     token_type: str = Field(
         default="bearer", description="Token type for OAuth2 usage."
     )
-
-
-class UserUpdateRequest(BaseModel):
-    """User profile update request."""
-
-    full_name: str | None = Field(
-        None,
-        max_length=255,
-        description="Optional replacement display name.",
-    )
-    email: EmailStr | None = Field(
-        default=None,
-        description="Optional replacement email address.",
-    )
-
-
-class UserFaceUpdateRequest(BaseModel):
-    """Face embedding update request."""
-
-    face_embedding: bytes = Field(description="Raw face embedding bytes.")
-
-    @field_validator("face_embedding")
-    @classmethod
-    def check_embedding_size(cls, v: bytes) -> bytes:
-        max_size = 2 * 1024 * 1024
-        if len(v) > max_size:
-            raise ValueError(
-                f"Face embedding too large: {len(v)} bytes > {max_size} bytes"
-            )
-        return v
-
-
-class UserFaceResponse(BaseModel):
-    """Face embedding response."""
-
-    id: UUID = Field(description="Stable user identifier.")
-    username: str = Field(description="Unique login name.")
-    face_embedding_size: int = Field(description="Stored face embedding size in bytes.")
