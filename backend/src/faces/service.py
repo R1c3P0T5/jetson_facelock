@@ -7,8 +7,15 @@ from src.core.exceptions import FaceVectorNotFoundError
 from src.faces.models import FaceVector
 
 
+MAX_FACE_VECTORS_PER_USER = 100
+
+
 async def list_face_vectors(user_id: UUID, session: AsyncSession) -> list[FaceVector]:
-    result = await session.exec(select(FaceVector).where(FaceVector.user_id == user_id))
+    result = await session.exec(
+        select(FaceVector)
+        .where(FaceVector.user_id == user_id)
+        .limit(MAX_FACE_VECTORS_PER_USER)
+    )
     return list(result.all())
 
 
