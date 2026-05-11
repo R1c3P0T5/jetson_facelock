@@ -18,7 +18,6 @@ async def create_user(
     username: str | None = None,
     email: str | None = None,
     role: UserRole = UserRole.USER,
-    face_embedding: bytes | None = None,
 ) -> User:
     user = User(
         username=username or f"user_{uuid4().hex[:12]}",
@@ -26,7 +25,6 @@ async def create_user(
         password_hash="hash",
         full_name="Original Name",
         role=role,
-        face_embedding=face_embedding,
     )
     session.add(user)
     await session.commit()
@@ -140,50 +138,6 @@ async def test_delete_user_allows_admin_to_delete_user(
 
     with pytest.raises(UserNotFoundError):
         await get_user_by_id(user.id, database_session)
-
-
-@pytest.mark.asyncio
-async def test_update_and_get_face_embedding(
-    database_session: AsyncSession,
-) -> None:
-    from src.users.service import get_face_embedding, update_face_embedding
-
-    user = await create_user(database_session)
-    embedding = b"face-embedding"
-
-    result = await update_face_embedding(user.id, embedding, database_session, user)
-
-    assert result.face_embedding == embedding
-    assert await get_face_embedding(user.id, database_session) == embedding
-
-
-@pytest.mark.asyncio
-async def test_get_face_embedding_rejects_missing_embedding(
-    database_session: AsyncSession,
-) -> None:
-    from src.users.service import get_face_embedding
-
-    user = await create_user(database_session)
-
-    with pytest.raises(UserNotFoundError):
-        await get_face_embedding(user.id, database_session)
-
-
-@pytest.mark.asyncio
-async def test_update_face_embedding_rejects_large_embedding(
-    database_session: AsyncSession,
-) -> None:
-    from src.users.service import update_face_embedding
-
-    user = await create_user(database_session)
-
-    with pytest.raises(ValueError, match="Face embedding too large"):
-        await update_face_embedding(
-            user.id,
-            b"x" * (2 * 1024 * 1024 + 1),
-            database_session,
-            user,
-        )
 
 
 @pytest.mark.asyncio

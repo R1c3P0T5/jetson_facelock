@@ -1,4 +1,3 @@
-from base64 import b64encode
 from uuid import uuid4
 
 import pytest
@@ -7,7 +6,6 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.auth.utils import hash_password
 from src.users.models import User, UserRole
-from src.users.schemas import MAX_FACE_EMBEDDING_SIZE
 
 
 async def get_token(client: AsyncClient, username: str, password: str) -> str:
@@ -25,7 +23,6 @@ async def create_user(
     username: str | None = None,
     password: str = "UserPassword123",
     role: UserRole = UserRole.USER,
-    face_embedding: bytes | None = None,
 ) -> User:
     username = username or f"user_{uuid4().hex[:12]}"
     user = User(
@@ -35,7 +32,6 @@ async def create_user(
         full_name="API User",
         role=role,
         is_active=True,
-        face_embedding=face_embedding,
     )
     database_session.add(user)
     await database_session.commit()
@@ -131,57 +127,6 @@ async def test_delete_own_user(client: AsyncClient, test_user: User) -> None:
     )
 
     assert response.status_code == 204
-
-
-@pytest.mark.asyncio
-async def test_update_face_embedding(client: AsyncClient, test_user: User) -> None:
-    token = await get_token(client, test_user.username, "TestPassword123")
-    embedding = b"face-vector"
-
-    response = await client.put(
-        f"/api/users/{test_user.id}/face",
-        headers={"Authorization": f"Bearer {token}"},
-        json={"face_embedding": b64encode(embedding).decode("ascii")},
-    )
-
-    assert response.status_code == 200
-    assert response.json()["face_embedding_size"] == len(embedding)
-
-
-@pytest.mark.asyncio
-async def test_get_face_embedding_size(
-    client: AsyncClient,
-    database_session: AsyncSession,
-) -> None:
-    embedding = b"face-vector"
-    user = await create_user(database_session, face_embedding=embedding)
-    token = await get_token(client, user.username, "UserPassword123")
-
-    response = await client.get(
-        f"/api/users/{user.id}/face",
-        headers={"Authorization": f"Bearer {token}"},
-    )
-
-    assert response.status_code == 200
-    assert response.json()["face_embedding_size"] == len(embedding)
-    assert "face_embedding" not in response.json()
-
-
-@pytest.mark.asyncio
-async def test_face_embedding_size_validation(
-    client: AsyncClient,
-    test_user: User,
-) -> None:
-    token = await get_token(client, test_user.username, "TestPassword123")
-    oversized_embedding = b"x" * (MAX_FACE_EMBEDDING_SIZE + 1)
-
-    response = await client.put(
-        f"/api/users/{test_user.id}/face",
-        headers={"Authorization": f"Bearer {token}"},
-        json={"face_embedding": b64encode(oversized_embedding).decode("ascii")},
-    )
-
-    assert response.status_code == 400
 
 
 @pytest.mark.asyncio

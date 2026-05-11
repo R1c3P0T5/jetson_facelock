@@ -6,11 +6,8 @@ from fastapi import APIRouter, Depends, Path, Query, status
 from src.auth.dependencies import get_admin_user, get_current_user
 from src.auth.schemas import UserResponse
 from src.core.database import SessionDep
-from src.core.exceptions import InvalidFaceEmbeddingError
 from src.users.models import User
 from src.users.schemas import (
-    UserFaceEmbeddingResponse,
-    UserFaceEmbeddingUpdateRequest,
     UserListResponse,
     UserResponseFull,
     UserUpdateRequest,
@@ -19,20 +16,11 @@ from src.users.service import (
     delete_user,
     get_user_by_id,
     list_users,
-    update_face_embedding,
     update_user,
 )
 
 
 router = APIRouter(prefix="/api/users", tags=["users"])
-
-
-def _face_response(user: User) -> UserFaceEmbeddingResponse:
-    return UserFaceEmbeddingResponse(
-        id=user.id,
-        username=user.username,
-        face_embedding_size=len(user.face_embedding or b""),
-    )
 
 
 def _full_user_response(user: User) -> UserResponseFull:
@@ -45,7 +33,6 @@ def _full_user_response(user: User) -> UserResponseFull:
         is_active=user.is_active,
         created_at=user.created_at,
         updated_at=user.updated_at,
-        face_embedding_size=len(user.face_embedding or b""),
     )
 
 
@@ -139,48 +126,3 @@ async def delete_user_profile(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> None:
     await delete_user(user_id, session, current_user)
-
-
-@router.put(
-    "/{user_id}/face",
-    response_model=UserFaceEmbeddingResponse,
-    summary="Update face embedding",
-    description=(
-        "Store a base64-encoded face embedding for a user. Users may update "
-        "their own face embedding; administrators may update any user's "
-        "embedding. The decoded payload is limited to 2 MiB."
-    ),
-    response_description="Face embedding metadata after the update.",
-)
-async def update_user_face(
-    user_id: Annotated[UUID, Path(description="User ID whose face embedding changes.")],
-    request: UserFaceEmbeddingUpdateRequest,
-    session: SessionDep,
-    current_user: Annotated[User, Depends(get_current_user)],
-) -> UserFaceEmbeddingResponse:
-    try:
-        embedding = request.validate_and_decode()
-    except ValueError as exc:
-        raise InvalidFaceEmbeddingError(detail=str(exc)) from exc
-
-    user = await update_face_embedding(user_id, embedding, session, current_user)
-    return _face_response(user)
-
-
-@router.get(
-    "/{user_id}/face",
-    response_model=UserFaceEmbeddingResponse,
-    summary="Get face embedding metadata",
-    description=(
-        "Return metadata for a user's stored face embedding. The raw embedding "
-        "bytes are not returned through the API."
-    ),
-    response_description="Face embedding metadata with byte size.",
-)
-async def get_user_face(
-    user_id: Annotated[UUID, Path(description="User ID whose face metadata is read.")],
-    session: SessionDep,
-    current_user: Annotated[User, Depends(get_current_user)],
-) -> UserFaceEmbeddingResponse:
-    user = await get_user_by_id(user_id, session)
-    return _face_response(user)

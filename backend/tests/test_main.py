@@ -66,8 +66,6 @@ def test_openapi_docs_include_operation_and_schema_descriptions() -> None:
         ("/api/users/{user_id}", "get"): "Get user profile",
         ("/api/users/{user_id}", "put"): "Update user profile",
         ("/api/users/{user_id}", "delete"): "Delete user",
-        ("/api/users/{user_id}/face", "put"): "Update face embedding",
-        ("/api/users/{user_id}/face", "get"): "Get face embedding metadata",
     }
 
     for (path, method), summary in expected_summaries.items():
@@ -79,9 +77,6 @@ def test_openapi_docs_include_operation_and_schema_descriptions() -> None:
     assert schemas["UserRegisterRequest"]["properties"]["username"]["description"]
     assert schemas["UserRegisterRequest"]["properties"]["password"]["description"]
     assert schemas["UserLoginRequest"]["properties"]["username"]["description"]
-    assert schemas["UserFaceEmbeddingUpdateRequest"]["properties"]["face_embedding"][
-        "description"
-    ]
     assert schemas["UserListResponse"]["properties"]["users"]["description"]
 
 
