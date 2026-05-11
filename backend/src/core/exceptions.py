@@ -54,3 +54,13 @@ class PasswordValidationError(BaseAPIError):
 class InvalidTokenError(BaseAPIError):
     status_code = 401
     detail = "Invalid or expired token"
+
+
+class FaceVectorNotFoundError(BaseAPIError):
+    status_code = 404
+    detail = "Face vector not found"
+
+
+class InvalidFaceVectorError(BaseAPIError):
+    status_code = 400
+    detail = "Invalid face vector data"
