@@ -1,36 +1,202 @@
 #include <stdio.h>
+#include <string.h>
 #include "pico/stdlib.h"
 #include "pico/cyw43_arch.h"
+#include "pico/time.h"
+#include "lwip/dns.h"
+#include "lwip/apps/mqtt.h"
+#include "lwip/altcp_tls.h"
+#include "mbedtls/ssl.h"
 
+// ── Logging ───────────────────────────────────────────────────────────────────
+#define OK(fmt, ...)   do { printf("[+] " fmt "\n", ##__VA_ARGS__); stdio_flush(); } while(0)
+#define INFO(fmt, ...) do { printf("[*] " fmt "\n", ##__VA_ARGS__); stdio_flush(); } while(0)
+#define WARN(fmt, ...) do { printf("[!] " fmt "\n", ##__VA_ARGS__); stdio_flush(); } while(0)
+#define DBG(fmt, ...)  do { printf("[v] " fmt "\n", ##__VA_ARGS__); stdio_flush(); } while(0)
 
+// ── Credentials (gitignored) ──────────────────────────────────────────────────
+#include "secrets.h"
 
+// ── HiveMQ Cloud ──────────────────────────────────────────────────────────────
+#define HIVEMQ_PORT      8883
+#define MQTT_CLIENT_ID   "pico2w"
 
-int main()
-{
-    stdio_init_all();
+// ── Topics ────────────────────────────────────────────────────────────────────
+#define MQTT_PUB_TOPIC   "pico/status"
+#define MQTT_SUB_TOPIC   "DOOR"
 
-    // Initialise the Wi-Fi chip
-    if (cyw43_arch_init()) {
-        printf("Wi-Fi init failed\n");
-        return -1;
+// ── Door actuator pin ─────────────────────────────────────────────────────────
+#define DOOR_PIN         15
+
+static mqtt_client_t *client;
+static ip_addr_t broker_ip;
+static volatile bool door_trigger    = false;
+static volatile bool mqtt_do_connect = false;
+static struct altcp_tls_config *active_sni_tls_config;
+static const char *active_sni_hostname;
+
+struct altcp_pcb *__real_altcp_tls_new(struct altcp_tls_config *config, u8_t ip_type);
+
+struct altcp_pcb *__wrap_altcp_tls_new(struct altcp_tls_config *config, u8_t ip_type) {
+    struct altcp_pcb *pcb = __real_altcp_tls_new(config, ip_type);
+    if (pcb && config == active_sni_tls_config && active_sni_hostname) {
+        mbedtls_ssl_context *ssl = (mbedtls_ssl_context *)altcp_tls_context(pcb);
+        if (ssl) {
+            int sni_err = mbedtls_ssl_set_hostname(ssl, active_sni_hostname);
+            if (sni_err == 0) {
+                DBG("TLS SNI hostname set: %s", active_sni_hostname);
+            } else {
+                WARN("mbedtls_ssl_set_hostname failed: %d", sni_err);
+            }
+        } else {
+            WARN("TLS context not available for SNI");
+        }
     }
+    return pcb;
+}
 
-    // Enable wifi station
+static void pub_cb(void *arg, err_t err) {
+    if (err != ERR_OK) WARN("publish error: %d", err);
+}
+
+static void incoming_pub_cb(void *arg, const char *topic, u32_t tot_len) {
+    INFO("incoming topic: %s (%lu bytes)", topic, (unsigned long)tot_len);
+}
+
+// Runs in lwIP IRQ context — only set a flag, never block here
+static void incoming_data_cb(void *arg, const u8_t *data, u16_t len, u8_t flags) {
+    DBG("data len=%d first_byte=0x%02X", len, len > 0 ? data[0] : 0);
+    if (len > 0 && data[0] == '1') {
+        door_trigger = true;
+        OK("DOOR trigger received");
+    }
+}
+
+static void sub_cb(void *arg, err_t err) {
+    if (err == ERR_OK) OK("subscribed to %s", MQTT_SUB_TOPIC);
+    else               WARN("subscribe failed: %d", err);
+}
+
+static void connection_cb(mqtt_client_t *c, void *arg, mqtt_connection_status_t status) {
+    DBG("connection_cb status=%d", status);
+    if (status == MQTT_CONNECT_ACCEPTED) {
+        OK("MQTT connected");
+        mqtt_set_inpub_callback(c, incoming_pub_cb, incoming_data_cb, NULL);
+        DBG("subscribing to %s", MQTT_SUB_TOPIC);
+        mqtt_subscribe(c, MQTT_SUB_TOPIC, 0, sub_cb, NULL);
+        const char *hello = "Pico2W online";
+        DBG("publishing hello");
+        mqtt_publish(c, MQTT_PUB_TOPIC, hello, strlen(hello), 0, 0, pub_cb, NULL);
+    } else {
+        WARN("MQTT disconnected status=%d", status);
+    }
+}
+
+// DNS callback: just save the IP and signal main loop — do NOT init TLS here
+static void dns_cb(const char *name, const ip_addr_t *addr, void *arg) {
+    if (!addr) { WARN("DNS failed for %s", name); return; }
+    broker_ip = *addr;
+    OK("resolved %s -> %s", name, ipaddr_ntoa(addr));
+    mqtt_do_connect = true;
+}
+
+// Called from main loop (not IRQ) — safe to init TLS and connect
+static void do_mqtt_connect(void) {
+    DBG("do_mqtt_connect start");
+
+    struct altcp_tls_config *tls = altcp_tls_create_config_client(NULL, 0);
+    DBG("altcp_tls_create_config_client -> %p", tls);
+    if (!tls) { WARN("TLS config alloc failed"); return; }
+
+    struct mqtt_connect_client_info_t ci = {
+        .client_id   = MQTT_CLIENT_ID,
+        .client_user = MQTT_USER,
+        .client_pass = MQTT_PASS,
+        .keep_alive  = 60,
+        .tls_config  = tls,
+    };
+
+    DBG("connecting to %s:%d", ipaddr_ntoa(&broker_ip), HIVEMQ_PORT);
+    cyw43_arch_lwip_begin();
+    active_sni_tls_config = tls;
+    active_sni_hostname = MQTT_HOST;
+    err_t err = mqtt_client_connect(client, &broker_ip, HIVEMQ_PORT,
+                                    connection_cb, NULL, &ci);
+    active_sni_hostname = NULL;
+    active_sni_tls_config = NULL;
+    cyw43_arch_lwip_end();
+    DBG("mqtt_client_connect -> err=%d", err);
+
+    if (err != ERR_OK) WARN("mqtt_client_connect error: %d", err);
+}
+
+int main() {
+    stdio_init_all();
+    sleep_ms(2000);
+    INFO("Pico2W MQTT/TLS demo");
+
+    gpio_init(DOOR_PIN);
+    gpio_set_dir(DOOR_PIN, GPIO_OUT);
+    gpio_put(DOOR_PIN, 0);
+
+    if (cyw43_arch_init()) {
+        WARN("cyw43_arch_init failed");
+        return 1;
+    }
     cyw43_arch_enable_sta_mode();
 
-    printf("Connecting to Wi-Fi...\n");
-    if (cyw43_arch_wifi_connect_timeout_ms("Your Wi-Fi SSID", "Your Wi-Fi Password", CYW43_AUTH_WPA2_AES_PSK, 30000)) {
-        printf("failed to connect.\n");
+    INFO("connecting to WiFi '%s'", WIFI_SSID);
+    while (cyw43_arch_wifi_connect_timeout_ms(WIFI_SSID, WIFI_PASSWORD,
+                                           CYW43_AUTH_WPA3_WPA2_AES_PSK, 30000)) {
+        WARN("WiFi connection failed");
+    }
+    OK("WiFi connected");
+
+    client = mqtt_client_new();
+
+    cyw43_arch_lwip_begin();
+    err_t err = dns_gethostbyname(MQTT_HOST, &broker_ip, dns_cb, NULL);
+    cyw43_arch_lwip_end();
+
+    if (err == ERR_OK) {
+        INFO("DNS cached: %s", ipaddr_ntoa(&broker_ip));
+        mqtt_do_connect = true;
+    } else if (err != ERR_INPROGRESS) {
+        WARN("dns_gethostbyname error: %d", err);
         return 1;
-    } else {
-        printf("Connected.\n");
-        // Read the ip address in a human readable way
-        uint8_t *ip_address = (uint8_t*)&(cyw43_state.netif[0].ip_addr.addr);
-        printf("IP address %d.%d.%d.%d\n", ip_address[0], ip_address[1], ip_address[2], ip_address[3]);
     }
 
+    absolute_time_t door_off_time = nil_time;
+    bool door_active = false;
+    absolute_time_t heartbeat_time = make_timeout_time_ms(2000);
+
     while (true) {
-        printf("Hello, world!\n");
-        sleep_ms(1000);
+        cyw43_arch_poll();
+
+        if (time_reached(heartbeat_time)) {
+            DBG("alive");
+            heartbeat_time = make_timeout_time_ms(2000);
+        }
+
+        if (mqtt_do_connect) {
+            mqtt_do_connect = false;
+            do_mqtt_connect();
+        }
+
+        if (door_trigger) {
+            door_trigger = false;
+            gpio_put(DOOR_PIN, 1);
+            door_off_time = make_timeout_time_ms(1000);
+            door_active = true;
+            OK("GP15 HIGH");
+        }
+
+        if (door_active && time_reached(door_off_time)) {
+            gpio_put(DOOR_PIN, 0);
+            door_active = false;
+            OK("GP15 LOW");
+        }
+
+        sleep_ms(10);
     }
 }
