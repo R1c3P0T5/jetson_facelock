@@ -1,51 +1,42 @@
 # YuNet + SFace Scripts
 
-These scripts are the current face-recognition prototype path. They use OpenCV's
-YuNet detector to locate faces and SFace to create 128-dimensional embeddings for
-registration and recognition.
+Prototype scripts for local face registration and recognition with OpenCV YuNet
+for face detection and SFace for 128-dimensional face embeddings.
 
-## Local Model Files
-
-Download the OpenCV ONNX model files before running the scripts:
+## Quick Start
 
 ```bash
 bash scripts/download-face-models.sh
+python3 scripts/yunet_sface/register.py --name alice --camera 0
+python3 scripts/yunet_sface/recognize.py --camera 0
 ```
 
-The script places these files under `scripts/models/`:
+`register.py` saves one embedding to `scripts/yunet_sface/store.pkl`.
+`recognize.py` compares live camera embeddings against that local store.
 
-```text
-scripts/models/face_detection_yunet_2023mar.onnx
-scripts/models/face_recognition_sface_2021dec.onnx
-```
+## Files
 
-The model files are local runtime artifacts and are ignored by Git. Keep the
-downloaded model versions aligned with the filenames above, or pass custom paths
-with `--detector-model` and `--recognizer-model`.
+| File | Purpose |
+| ---- | ------- |
+| `register.py` | Capture and save one face embedding. |
+| `recognize.py` | Compare live faces against saved embeddings. |
+| `detector.py` | YuNet detector wrapper. |
+| `recognizer.py` | SFace embedding and cosine helpers. |
+| `store.py` | Local pickle-backed embedding store. |
+| `model_files.py` | Model path defaults and missing-file hints. |
+| `../download-face-models.sh` | Download and verify ONNX models. |
 
-## Register a Face
+## Notes
 
-```bash
-python scripts/yunet_sface/register.py --name alice --camera 0
-```
-
-Press `c` to capture the largest detected face and save its embedding. Press `q`
-to quit. The default store is `scripts/yunet_sface/store.pkl`; it contains local
-face data and is intentionally ignored by Git.
-
-## Recognize Faces
-
-```bash
-python scripts/yunet_sface/recognize.py --camera 0
-```
-
-The recognition script compares live embeddings against the local store with a
-cosine threshold. Use `--threshold` to tune strictness and `--no-live-panel` to
-disable the embedding heatmap/comparison window.
+- ONNX models live in `scripts/models/` and are ignored by Git.
+- `store.pkl` contains local face data and is ignored by Git.
+- Use `--threshold` to tune recognition strictness; higher is stricter.
+- If `cv2.FaceDetectorYN` or `cv2.FaceRecognizerSF` is missing, check the
+  installed OpenCV version.
 
 ## References
 
-- OpenCV YuNet and SFace DNN tutorial: https://docs.opencv.org/4.x/d0/dd4/tutorial_dnn_face.html
-- libfacedetection: https://github.com/ShiqiYu/libfacedetection
-- SFace: https://github.com/zhongyy/SFace
-- libfacedetection training code: https://github.com/ShiqiYu/libfacedetection.train
+- https://docs.opencv.org/4.x/d0/dd4/tutorial_dnn_face.html
+- https://github.com/ShiqiYu/libfacedetection
+- https://github.com/zhongyy/SFace
+- https://github.com/ShiqiYu/libfacedetection.train
