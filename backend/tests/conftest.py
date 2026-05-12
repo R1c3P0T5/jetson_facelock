@@ -1,5 +1,6 @@
 from collections.abc import AsyncGenerator, Generator
 from pathlib import Path
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 import pytest_asyncio
@@ -108,3 +109,21 @@ async def test_admin(database_session: AsyncSession) -> User:
     await database_session.commit()
     await database_session.refresh(admin)
     return admin
+
+
+@pytest.fixture(autouse=True)
+def _patch_face_engine(monkeypatch: pytest.MonkeyPatch) -> Generator[None, None, None]:
+    """Prevent ONNX loading in tests. Engine returns no-face by default."""
+    import src.faces.engine as engine_mod
+    from src.faces.engine import get_engine
+
+    mock = MagicMock()
+    mock.detect_and_embed.return_value = None
+
+    monkeypatch.setattr(engine_mod, "_engine", mock)
+    monkeypatch.setattr(engine_mod, "load_engine", AsyncMock())
+    monkeypatch.setattr(engine_mod, "unload_engine", AsyncMock())
+
+    app.dependency_overrides[get_engine] = lambda: mock
+    yield
+    app.dependency_overrides.pop(get_engine, None)
