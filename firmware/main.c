@@ -32,12 +32,14 @@
 #define LED_HEARTBEAT_MS       1000
 #define STATUS_LOG_MS          5000
 #define STATUS_PUBLISH_MS      10000
+#define DOOR_PULSE_MS          1000
 
 static mqtt_client_t *client;
 static ip_addr_t broker_ip;
 static volatile bool door_trigger    = false;
 static volatile bool mqtt_do_connect = false;
 static volatile bool mqtt_connected  = false;
+static struct altcp_tls_config *tls_config;
 static struct altcp_tls_config *active_sni_tls_config;
 static const char *active_sni_hostname;
 
@@ -112,21 +114,23 @@ static void dns_cb(const char *name, const ip_addr_t *addr, void *arg) {
 static void do_mqtt_connect(void) {
     DBG("do_mqtt_connect start");
 
-    struct altcp_tls_config *tls = altcp_tls_create_config_client(NULL, 0);
-    DBG("altcp_tls_create_config_client -> %p", tls);
-    if (!tls) { WARN("TLS config alloc failed"); return; }
+    if (!tls_config) {
+        tls_config = altcp_tls_create_config_client(NULL, 0);
+        DBG("altcp_tls_create_config_client -> %p", tls_config);
+        if (!tls_config) { WARN("TLS config alloc failed"); return; }
+    }
 
     struct mqtt_connect_client_info_t ci = {
         .client_id   = MQTT_CLIENT_ID,
         .client_user = MQTT_USER,
         .client_pass = MQTT_PASS,
         .keep_alive  = 60,
-        .tls_config  = tls,
+        .tls_config  = tls_config,
     };
 
     DBG("connecting to %s:%d", ipaddr_ntoa(&broker_ip), HIVEMQ_PORT);
     cyw43_arch_lwip_begin();
-    active_sni_tls_config = tls;
+    active_sni_tls_config = tls_config;
     active_sni_hostname = MQTT_HOST;
     err_t err = mqtt_client_connect(client, &broker_ip, HIVEMQ_PORT,
                                     connection_cb, NULL, &ci);
@@ -154,7 +158,7 @@ static void publish_status(bool door_active, bool led_on) {
     }
 
     cyw43_arch_lwip_begin();
-    err_t err = mqtt_publish(client, MQTT_PUB_TOPIC, payload, strlen(payload), 0, 0, pub_cb, NULL);
+    err_t err = mqtt_publish(client, MQTT_PUB_TOPIC, payload, (size_t)len, 0, 0, pub_cb, NULL);
     cyw43_arch_lwip_end();
 
     if (err == ERR_OK) {
@@ -188,6 +192,7 @@ int main() {
     OK("WiFi connected");
 
     client = mqtt_client_new();
+    if (!client) { WARN("mqtt_client_new failed"); return 1; }
 
     cyw43_arch_lwip_begin();
     err_t err = dns_gethostbyname(MQTT_HOST, &broker_ip, dns_cb, NULL);
@@ -239,7 +244,7 @@ int main() {
         if (door_trigger) {
             door_trigger = false;
             gpio_put(DOOR_PIN, 1);
-            door_off_time = make_timeout_time_ms(1000);
+            door_off_time = make_timeout_time_ms(DOOR_PULSE_MS);
             door_active = true;
             OK("GP15 HIGH");
         }
