@@ -1,12 +1,12 @@
 # Jetson Facelock Backend
 
 FastAPI service handling user authentication, admin user management,
-face-embedding verification, audit logging, and MQTT door-control publishing
+image-based face verification, audit logging, and MQTT door-control publishing
 for the Jetson Facelock system.
 
-The backend receives face embeddings from the Jetson, matches them against
-stored user embeddings, writes an audit log entry, and publishes the door
-command on a granted match. See [`../README.md`](../README.md) for the
+The backend receives face images, extracts face embeddings internally, matches
+them against stored user face vectors, writes an audit log entry, and publishes
+the door command on a granted match. See [`../README.md`](../README.md) for the
 system-level architecture.
 
 For repository-wide setup, pre-commit hooks, CI behavior, and generated API
@@ -44,7 +44,7 @@ backend/
 ├── src/
 │   ├── auth/            # Registration, login, JWT utilities, auth dependencies
 │   ├── users/           # User model, schemas, service layer, CRUD routes
-│   ├── face/            # Face verification endpoint and cosine similarity logic
+│   ├── faces/           # Face image endpoints, engine, and cosine matching
 │   ├── audit/           # Audit log model, routes, and query service
 │   └── core/            # Settings, database session setup, exceptions, security
 ├── tests/               # Unit and integration tests
@@ -117,7 +117,7 @@ uv run pytest tests --cov
 - Alembic migrations
 - Argon2id password hashing through `argon2-cffi`
 - JWT authentication through `python-jose`
-- NumPy for embedding decoding and cosine similarity
+- NumPy for face vector storage and cosine similarity
 - aiomqtt for async MQTT publishing to HiveMQ Cloud
 - pytest, pytest-asyncio, pytest-cov, httpx, pyright, and ruff
 

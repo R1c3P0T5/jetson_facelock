@@ -1,4 +1,3 @@
-import base64
 from collections.abc import AsyncGenerator
 from unittest.mock import MagicMock
 from uuid import uuid4
@@ -17,11 +16,6 @@ from src.faces.service import add_face_vector
 from src.users.models import User, UserRole
 
 MOCK_EMBEDDING = np.random.default_rng(42).random(128, dtype=np.float32).tobytes()
-
-
-def _make_b64_embedding(seed: int = 0) -> str:
-    embedding = np.random.default_rng(seed).random(128, dtype=np.float32)
-    return base64.b64encode(embedding.tobytes()).decode()
 
 
 def _make_jpeg_bytes() -> bytes:
@@ -151,77 +145,15 @@ async def test_admin_can_list_faces_for_any_user(
 
 
 @pytest.mark.asyncio
-async def test_create_face_with_valid_embedding_returns_metadata(
-    client: AsyncClient,
-    database_session: AsyncSession,
-) -> None:
-    user, token = await _create_user_with_token(database_session)
-
-    response = await client.post(
-        f"/api/users/{user.id}/faces",
-        json={"embedding": _make_b64_embedding(), "label": "正面"},
-        headers=_auth_headers(token),
-    )
-
-    assert response.status_code == 201
-    data = response.json()
-    assert data["embedding_size"] == 512
-    assert data["label"] == "正面"
-    assert data["id"]
-    assert data["created_at"]
-
-
-@pytest.mark.asyncio
-async def test_create_face_rejects_short_embedding(
-    client: AsyncClient,
-    database_session: AsyncSession,
-) -> None:
-    user, token = await _create_user_with_token(database_session)
-    short_embedding = base64.b64encode(
-        np.array([1.0], dtype=np.float32).tobytes()
-    ).decode()
-
-    response = await client.post(
-        f"/api/users/{user.id}/faces",
-        json={"embedding": short_embedding, "label": "正面"},
-        headers=_auth_headers(token),
-    )
-
-    assert response.status_code == 400
-
-
-@pytest.mark.asyncio
-async def test_create_face_rejects_bad_base64(
-    client: AsyncClient,
-    database_session: AsyncSession,
-) -> None:
-    user, token = await _create_user_with_token(database_session)
-
-    response = await client.post(
-        f"/api/users/{user.id}/faces",
-        json={"embedding": "not base64!!!", "label": "正面"},
-        headers=_auth_headers(token),
-    )
-
-    assert response.status_code == 400
-
-
-@pytest.mark.asyncio
 async def test_delete_face_returns_no_content_after_adding(
     client: AsyncClient,
     database_session: AsyncSession,
 ) -> None:
     user, token = await _create_user_with_token(database_session)
-    create_response = await client.post(
-        f"/api/users/{user.id}/faces",
-        json={"embedding": _make_b64_embedding(), "label": "正面"},
-        headers=_auth_headers(token),
-    )
-    assert create_response.status_code == 201
-    face_id = create_response.json()["id"]
+    face = await add_face_vector(user.id, MOCK_EMBEDDING, "正面", database_session)
 
     response = await client.delete(
-        f"/api/users/{user.id}/faces/{face_id}",
+        f"/api/users/{user.id}/faces/{face.id}",
         headers=_auth_headers(token),
     )
 
@@ -243,43 +175,6 @@ async def test_delete_nonexistent_face_returns_not_found(
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Face vector not found"
-
-
-@pytest.mark.asyncio
-async def test_recognize_valid_embedding_returns_unmatched_response(
-    client: AsyncClient,
-    database_session: AsyncSession,
-) -> None:
-    _, token = await _create_user_with_token(database_session)
-
-    response = await client.post(
-        "/api/faces/recognize",
-        json={"embedding": _make_b64_embedding()},
-        headers=_auth_headers(token),
-    )
-
-    assert response.status_code == 200
-    data = response.json()
-    assert data["matched"] is False
-    assert data["user_id"] is None
-    assert data["username"] is None
-    assert isinstance(data["confidence"], float)
-
-
-@pytest.mark.asyncio
-async def test_recognize_rejects_invalid_embedding(
-    client: AsyncClient,
-    database_session: AsyncSession,
-) -> None:
-    _, token = await _create_user_with_token(database_session)
-
-    response = await client.post(
-        "/api/faces/recognize",
-        json={"embedding": "not base64!!!"},
-        headers=_auth_headers(token),
-    )
-
-    assert response.status_code == 400
 
 
 @pytest.mark.asyncio

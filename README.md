@@ -45,7 +45,7 @@ This repository is intended for collaborators building the system, improving the
        Lock hardware
 ```
 
-The backend owns authentication, user records, role checks, face-embedding verification, access logging, MQTT door-control publishing, and the OpenAPI contract. The frontend consumes the generated TypeScript client and provides the administrative dashboard. The firmware target is the networked lock-controller surface for the Pico W. The scripts directory contains the face-registration, recognition, and training utilities used around the Jetson runtime.
+The backend owns authentication, user records, role checks, image-based face verification, access logging, MQTT door-control publishing, and the OpenAPI contract. The frontend consumes the generated TypeScript client and provides the administrative dashboard. The firmware target is the networked lock-controller surface for the Pico W. The scripts directory contains face-registration, recognition, and training utilities used for local testing around the Jetson runtime.
 
 ## Features
 
