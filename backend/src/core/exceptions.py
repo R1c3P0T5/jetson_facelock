@@ -71,6 +71,16 @@ class FaceVectorLimitExceededError(BaseAPIError):
     detail = "Face vector limit reached (max 100 per user)"
 
 
+class NoFaceDetectedError(BaseAPIError):
+    status_code = 400
+    detail = "No face detected in the provided image"
+
+
+class InvalidImageError(BaseAPIError):
+    status_code = 400
+    detail = "Could not decode the provided image"
+
+
 class DoorNotFoundError(BaseAPIError):
     status_code = 404
     detail = "Door not found"

@@ -60,10 +60,10 @@ class FaceVectorListResponse(BaseModel):
 
 class RecognizeRequest(_EmbeddingRequest):
     threshold: float = Field(
-        default=0.6,
+        default=0.363,
         ge=0.0,
         le=1.0,
-        description="Minimum confidence threshold for a match.",
+        description="Minimum cosine similarity threshold for a match.",
     )
 
 
