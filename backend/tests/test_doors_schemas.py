@@ -1,6 +1,8 @@
 from datetime import datetime, timezone
 from uuid import uuid4
 
+import pytest
+
 
 def test_door_response_serializes_correctly() -> None:
     from src.doors.schemas import DoorResponse
@@ -11,6 +13,7 @@ def test_door_response_serializes_correctly() -> None:
     resp = DoorResponse(
         id=door_id,
         name="Main Entrance",
+        mqtt_id="main-entrance",
         location="Building A",
         is_active=True,
         created_at=now,
@@ -18,6 +21,7 @@ def test_door_response_serializes_correctly() -> None:
 
     assert resp.id == door_id
     assert resp.name == "Main Entrance"
+    assert resp.mqtt_id == "main-entrance"
     assert resp.location == "Building A"
     assert resp.is_active is True
 
@@ -28,7 +32,12 @@ def test_door_list_response_has_pagination_fields() -> None:
     now = datetime.now(tz=timezone.utc).replace(tzinfo=None)
     doors = [
         DoorResponse(
-            id=uuid4(), name=f"Door {i}", location=None, is_active=True, created_at=now
+            id=uuid4(),
+            name=f"Door {i}",
+            mqtt_id=f"door-{i}",
+            location=None,
+            is_active=True,
+            created_at=now,
         )
         for i in range(3)
     ]
@@ -45,5 +54,15 @@ def test_door_update_request_all_fields_optional() -> None:
     req = DoorUpdateRequest()
 
     assert req.name is None
+    assert req.mqtt_id is None
     assert req.location is None
     assert req.is_active is None
+
+
+def test_door_create_request_rejects_invalid_mqtt_id() -> None:
+    from pydantic import ValidationError
+
+    from src.doors.schemas import DoorCreateRequest
+
+    with pytest.raises(ValidationError):
+        DoorCreateRequest(name="Test", mqtt_id="Invalid ID!")

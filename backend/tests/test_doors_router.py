@@ -25,8 +25,11 @@ async def _create_admin_with_token(session: AsyncSession) -> tuple[User, str]:
     return admin, create_access_token(admin.id)
 
 
-async def _create_door(session: AsyncSession, *, name: str | None = None) -> Door:
-    door = Door(name=name or f"door_{uuid4().hex[:12]}")
+async def _create_door(
+    session: AsyncSession, *, name: str | None = None, mqtt_id: str | None = None
+) -> Door:
+    _name = name or f"door_{uuid4().hex[:12]}"
+    door = Door(name=_name, mqtt_id=mqtt_id or _name.lower().replace(" ", "-"))
     session.add(door)
     await session.commit()
     await session.refresh(door)
@@ -107,13 +110,14 @@ async def test_create_door_as_admin_returns_door(
 
     response = await client.post(
         "/api/doors",
-        json={"name": "Server Room", "location": "Floor 3"},
+        json={"name": "Server Room", "mqtt_id": "server-room", "location": "Floor 3"},
         headers=_auth(token),
     )
 
     assert response.status_code == 201
     data = response.json()
     assert data["name"] == "Server Room"
+    assert data["mqtt_id"] == "server-room"
     assert data["location"] == "Floor 3"
     assert data["is_active"] is True
     assert data["id"]
@@ -125,16 +129,34 @@ async def test_create_door_rejects_duplicate_name(
     database_session: AsyncSession,
 ) -> None:
     _, token = await _create_admin_with_token(database_session)
-    await _create_door(database_session, name="Unique Door")
+    await _create_door(database_session, name="Unique Door", mqtt_id="unique-door")
 
     response = await client.post(
         "/api/doors",
-        json={"name": "Unique Door"},
+        json={"name": "Unique Door", "mqtt_id": "other-id"},
         headers=_auth(token),
     )
 
     assert response.status_code == 400
     assert response.json()["detail"] == "Door name already in use"
+
+
+@pytest.mark.asyncio
+async def test_create_door_rejects_duplicate_mqtt_id(
+    client: AsyncClient,
+    database_session: AsyncSession,
+) -> None:
+    _, token = await _create_admin_with_token(database_session)
+    await _create_door(database_session, name="First Door", mqtt_id="shared-id")
+
+    response = await client.post(
+        "/api/doors",
+        json={"name": "Second Door", "mqtt_id": "shared-id"},
+        headers=_auth(token),
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Door MQTT ID already in use"
 
 
 @pytest.mark.asyncio

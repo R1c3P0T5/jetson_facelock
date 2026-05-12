@@ -4,8 +4,16 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 
+_MQTT_ID_PATTERN = r"^[a-z0-9][a-z0-9_-]*$"
+
+
 class DoorCreateRequest(BaseModel):
-    name: str = Field(max_length=128, description="Unique door name.")
+    name: str = Field(max_length=128, description="Unique display name.")
+    mqtt_id: str = Field(
+        max_length=64,
+        pattern=_MQTT_ID_PATTERN,
+        description="Unique MQTT topic slug (lowercase, alphanumeric, hyphens, underscores).",
+    )
     location: str | None = Field(
         default=None, max_length=256, description="Optional physical location."
     )
@@ -16,7 +24,13 @@ class DoorCreateRequest(BaseModel):
 
 class DoorUpdateRequest(BaseModel):
     name: str | None = Field(
-        default=None, max_length=128, description="Replacement door name."
+        default=None, max_length=128, description="Replacement display name."
+    )
+    mqtt_id: str | None = Field(
+        default=None,
+        max_length=64,
+        pattern=_MQTT_ID_PATTERN,
+        description="Replacement MQTT topic slug.",
     )
     location: str | None = Field(
         default=None, max_length=256, description="Replacement location."
@@ -26,7 +40,8 @@ class DoorUpdateRequest(BaseModel):
 
 class DoorResponse(BaseModel):
     id: UUID = Field(description="Stable door identifier.")
-    name: str = Field(description="Door name.")
+    name: str = Field(description="Display name.")
+    mqtt_id: str | None = Field(default=None, description="MQTT topic slug.")
     location: str | None = Field(default=None, description="Physical location.")
     is_active: bool = Field(description="Whether the door is operational.")
     created_at: datetime = Field(description="UTC timestamp when the door was created.")
