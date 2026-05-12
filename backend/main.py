@@ -4,10 +4,11 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+import src.core.database as db
+import src.faces.engine as face_engine
 from src.auth.router import router as auth_router
 from src.auth.service import ensure_default_admin
 from src.core.config import get_settings
-import src.core.database as db
 from src.faces.router import router as faces_router
 from src.users.router import router as users_router
 
@@ -16,12 +17,14 @@ from src.users.router import router as users_router
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     await db.init_db()
     await db.create_db_and_tables()
+    await face_engine.load_engine()
     async with db.session_context() as session:
         await ensure_default_admin(get_settings(), session)
     try:
         yield
     finally:
         await db.close_db()
+        await face_engine.unload_engine()
 
 
 def create_app() -> FastAPI:
