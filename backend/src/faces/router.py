@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, Form, Path, Query, UploadFile, status
 
 from src.auth.dependencies import get_current_user
 from src.core.access import require_self_or_admin
+from src.core.config import get_settings
 from src.core.database import SessionDep
 from src.core.exceptions import (
     InvalidFaceVectorError,
@@ -27,6 +28,7 @@ from src.faces.service import (
     add_face_vector,
     delete_face_vector,
     list_face_vectors,
+    recognize_face_vector,
 )
 from src.users.models import User
 
@@ -171,4 +173,30 @@ async def recognize_face(
         user_id=None,
         username=None,
         confidence=0.0,
+    )
+
+
+@router.post(
+    "/api/faces/recognize/from-image",
+    response_model=RecognizeResponse,
+    summary="Recognize a face from image",
+    description=(
+        "Upload an image. The backend detects the largest face, computes an "
+        "embedding, and returns the closest matching user above the configured "
+        "threshold. No authentication required."
+    ),
+)
+async def recognize_face_from_image(
+    image: UploadFile,
+    session: SessionDep,
+    engine: EngineDep,
+) -> RecognizeResponse:
+    image_bgr = _decode_image(await image.read())
+    embedding = engine.detect_and_embed(image_bgr)
+    if embedding is None:
+        raise NoFaceDetectedError()
+    return await recognize_face_vector(
+        embedding,
+        session,
+        get_settings().COSINE_THRESHOLD,
     )
