@@ -41,7 +41,7 @@ def test_recognize_request_validates_threshold_bounds_and_default() -> None:
 
     default_request = RecognizeRequest(embedding=encoded)
     assert default_request.embedding == encoded
-    assert default_request.threshold == 0.6
+    assert default_request.threshold == pytest.approx(0.363)
     assert default_request.decode_embedding() == b"\0" * 512
     assert RecognizeRequest(embedding=encoded, threshold=0).threshold == 0
     assert RecognizeRequest(embedding=encoded, threshold=1).threshold == 1

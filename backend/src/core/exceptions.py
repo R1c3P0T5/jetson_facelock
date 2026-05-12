@@ -69,3 +69,13 @@ class InvalidFaceVectorError(BaseAPIError):
 class FaceVectorLimitExceededError(BaseAPIError):
     status_code = 422
     detail = "Face vector limit reached (max 100 per user)"
+
+
+class NoFaceDetectedError(BaseAPIError):
+    status_code = 400
+    detail = "No face detected in the provided image"
+
+
+class InvalidImageError(BaseAPIError):
+    status_code = 400
+    detail = "Could not decode the provided image"
