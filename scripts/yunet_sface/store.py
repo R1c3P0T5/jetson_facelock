@@ -43,4 +43,3 @@ class EmbeddingStore:
                 raise ValueError(f"store value for {key!r} must be bytes, got {type(value)!r}")
             validated[key] = value
         return validated
-

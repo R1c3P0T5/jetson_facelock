@@ -45,4 +45,3 @@ def cosine(a: np.ndarray, b: np.ndarray) -> float:
     if denom == 0:
         return 0.0
     return float(np.dot(a_flat, b_flat) / denom)
-

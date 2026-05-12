@@ -34,4 +34,3 @@ class FaceDetector:
         self._model.setInputSize((w, h))
         _, faces = self._model.detect(frame_bgr)
         return faces
-
