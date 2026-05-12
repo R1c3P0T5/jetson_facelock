@@ -35,6 +35,21 @@ def test_settings_defaults_without_env_file() -> None:
     assert settings.DEFAULT_ADMIN_EMAIL is None
 
 
+def test_settings_cosine_threshold_default() -> None:
+    settings = Settings(SECRET_KEY="a" * 32, DEBUG=False, _env_file=None)  # type: ignore[call-arg]
+
+    assert settings.COSINE_THRESHOLD == pytest.approx(0.363)
+
+
+def test_settings_face_model_paths_contain_expected_filenames() -> None:
+    settings = Settings(SECRET_KEY="a" * 32, DEBUG=False, _env_file=None)  # type: ignore[call-arg]
+
+    assert "face_detection_yunet" in str(settings.FACE_DETECTOR_MODEL)
+    assert "face_recognition_sface" in str(settings.FACE_RECOGNIZER_MODEL)
+    assert str(settings.FACE_DETECTOR_MODEL).startswith("models/")
+    assert str(settings.FACE_RECOGNIZER_MODEL).startswith("models/")
+
+
 def test_settings_accepts_default_admin_username_and_password_only() -> None:
     settings = Settings(
         SECRET_KEY="c" * 32,
