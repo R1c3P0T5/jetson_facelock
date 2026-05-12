@@ -15,35 +15,12 @@ on backend-specific structure and operating notes.
 
 ## Setup
 
-Install development dependencies from the `backend/` directory:
+Use [../DEVELOPMENT.md](../DEVELOPMENT.md) for the canonical local setup and
+command reference.
 
-```bash
-uv sync --dev
-```
-
-Create a local environment file:
-
-```bash
-cp .env.example .env
-python3 -c "import secrets; print(secrets.token_hex(32))"
-```
-
-Set the generated value as `SECRET_KEY` in `.env`. See
-[../DEVELOPMENT.md](../DEVELOPMENT.md) for the complete environment reference.
-
-Initialize or migrate the database:
-
-```bash
-uv run alembic upgrade head
-```
-
-Start the development server:
-
-```bash
-uv run fastapi dev main.py
-```
-
-The API is available at `http://localhost:8000`.
+The image-based face endpoints load YuNet and SFace ONNX files from
+`backend/models/`. These files are downloaded by the backend model setup command
+listed in the development guide and are intentionally ignored by Git.
 
 Equivalent uvicorn command, useful when debugging server startup directly:
 

@@ -22,6 +22,7 @@ Copy `backend/.env.example` to `backend/.env` and fill in the required values.
 
 ```bash
 uv run fastapi dev main.py              # start dev server at http://localhost:8000
+uv run python scripts/download_models.py  # download YuNet/SFace ONNX files
 uv run pytest tests -v                  # run tests
 uv run pytest tests --cov               # run tests with coverage report
 uv run pyright main.py src tests alembic  # type-check all entry points
