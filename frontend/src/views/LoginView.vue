@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { Alert, Button, Card, Input } from '@/lib'
 import { useAuthStore } from '@/stores/auth'
 
@@ -56,6 +56,13 @@ async function submit() {
           {{ loading ? 'Signing in…' : 'Sign in' }}
         </Button>
       </form>
+
+      <p
+        class="text-center font-mono text-[11px] uppercase tracking-[0.06em] text-text-placeholder"
+      >
+        No account yet?
+        <RouterLink to="/register" class="text-ac underline underline-offset-2">Sign up</RouterLink>
+      </p>
     </div>
   </Card>
 </template>
