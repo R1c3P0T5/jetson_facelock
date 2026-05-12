@@ -28,10 +28,16 @@
 // ── Door actuator pin ─────────────────────────────────────────────────────────
 #define DOOR_PIN         15
 
+// ── Runtime status cadence ────────────────────────────────────────────────────
+#define LED_HEARTBEAT_MS       1000
+#define STATUS_LOG_MS          5000
+#define STATUS_PUBLISH_MS      10000
+
 static mqtt_client_t *client;
 static ip_addr_t broker_ip;
 static volatile bool door_trigger    = false;
 static volatile bool mqtt_do_connect = false;
+static volatile bool mqtt_connected  = false;
 static struct altcp_tls_config *active_sni_tls_config;
 static const char *active_sni_hostname;
 
@@ -80,6 +86,7 @@ static void sub_cb(void *arg, err_t err) {
 static void connection_cb(mqtt_client_t *c, void *arg, mqtt_connection_status_t status) {
     DBG("connection_cb status=%d", status);
     if (status == MQTT_CONNECT_ACCEPTED) {
+        mqtt_connected = true;
         OK("MQTT connected");
         mqtt_set_inpub_callback(c, incoming_pub_cb, incoming_data_cb, NULL);
         DBG("subscribing to %s", MQTT_SUB_TOPIC);
@@ -88,6 +95,7 @@ static void connection_cb(mqtt_client_t *c, void *arg, mqtt_connection_status_t 
         DBG("publishing hello");
         mqtt_publish(c, MQTT_PUB_TOPIC, hello, strlen(hello), 0, 0, pub_cb, NULL);
     } else {
+        mqtt_connected = false;
         WARN("MQTT disconnected status=%d", status);
     }
 }
@@ -130,6 +138,32 @@ static void do_mqtt_connect(void) {
     if (err != ERR_OK) WARN("mqtt_client_connect error: %d", err);
 }
 
+static void publish_status(bool door_active, bool led_on) {
+    if (!client || !mqtt_connected) return;
+
+    char payload[128];
+    uint32_t uptime_ms = to_ms_since_boot(get_absolute_time());
+    int len = snprintf(payload, sizeof(payload),
+                       "{\"uptime_ms\":%lu,\"mqtt\":\"connected\",\"door\":\"%s\",\"led\":\"%s\"}",
+                       (unsigned long)uptime_ms,
+                       door_active ? "active" : "idle",
+                       led_on ? "on" : "off");
+    if (len < 0 || (size_t)len >= sizeof(payload)) {
+        WARN("status payload truncated");
+        return;
+    }
+
+    cyw43_arch_lwip_begin();
+    err_t err = mqtt_publish(client, MQTT_PUB_TOPIC, payload, strlen(payload), 0, 0, pub_cb, NULL);
+    cyw43_arch_lwip_end();
+
+    if (err == ERR_OK) {
+        DBG("status published: %s", payload);
+    } else {
+        WARN("status publish start failed: %d", err);
+    }
+}
+
 int main() {
     stdio_init_all();
     sleep_ms(2000);
@@ -143,6 +177,7 @@ int main() {
         WARN("cyw43_arch_init failed");
         return 1;
     }
+    cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 0);
     cyw43_arch_enable_sta_mode();
 
     INFO("connecting to WiFi '%s'", WIFI_SSID);
@@ -168,14 +203,32 @@ int main() {
 
     absolute_time_t door_off_time = nil_time;
     bool door_active = false;
-    absolute_time_t heartbeat_time = make_timeout_time_ms(2000);
+    bool led_on = false;
+    absolute_time_t led_heartbeat_time = make_timeout_time_ms(LED_HEARTBEAT_MS);
+    absolute_time_t status_log_time = make_timeout_time_ms(STATUS_LOG_MS);
+    absolute_time_t status_publish_time = make_timeout_time_ms(STATUS_PUBLISH_MS);
 
     while (true) {
         cyw43_arch_poll();
 
-        if (time_reached(heartbeat_time)) {
-            DBG("alive");
-            heartbeat_time = make_timeout_time_ms(2000);
+        if (time_reached(led_heartbeat_time)) {
+            led_on = !led_on;
+            cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, led_on);
+            led_heartbeat_time = make_timeout_time_ms(LED_HEARTBEAT_MS);
+        }
+
+        if (time_reached(status_log_time)) {
+            INFO("heartbeat uptime=%lu ms mqtt=%s door=%s led=%s",
+                 (unsigned long)to_ms_since_boot(get_absolute_time()),
+                 mqtt_connected ? "connected" : "disconnected",
+                 door_active ? "active" : "idle",
+                 led_on ? "on" : "off");
+            status_log_time = make_timeout_time_ms(STATUS_LOG_MS);
+        }
+
+        if (time_reached(status_publish_time)) {
+            publish_status(door_active, led_on);
+            status_publish_time = make_timeout_time_ms(STATUS_PUBLISH_MS);
         }
 
         if (mqtt_do_connect) {
