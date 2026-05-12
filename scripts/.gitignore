@@ -1,1 +1,5 @@
 __pycache__/
+
+# Face-recognition runtime artifacts.
+models/*.onnx
+yunet_sface/*.pkl
