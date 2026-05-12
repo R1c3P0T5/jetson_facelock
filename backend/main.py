@@ -8,6 +8,7 @@ from src.auth.router import router as auth_router
 from src.auth.service import ensure_default_admin
 from src.core.config import get_settings
 import src.core.database as db
+from src.doors.router import router as doors_router
 from src.faces.router import router as faces_router
 from src.users.router import router as users_router
 
@@ -46,6 +47,7 @@ def create_app() -> FastAPI:
     app.include_router(auth_router)
     app.include_router(users_router)
     app.include_router(faces_router)
+    app.include_router(doors_router)
 
     @app.get("/health")
     async def health_check() -> dict[str, str]:
