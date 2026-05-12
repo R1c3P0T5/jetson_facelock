@@ -40,3 +40,21 @@ def test_base_api_error_can_override_detail_and_status_code() -> None:
 
     assert error.status_code == 418
     assert error.detail == "Custom"
+
+
+def test_door_not_found_error_has_correct_status_and_detail() -> None:
+    from src.core.exceptions import DoorNotFoundError
+
+    err = DoorNotFoundError()
+
+    assert err.status_code == 404
+    assert err.detail == "Door not found"
+
+
+def test_door_name_already_exists_error_has_correct_status_and_detail() -> None:
+    from src.core.exceptions import DoorNameAlreadyExistsError
+
+    err = DoorNameAlreadyExistsError()
+
+    assert err.status_code == 400
+    assert err.detail == "Door name already in use"

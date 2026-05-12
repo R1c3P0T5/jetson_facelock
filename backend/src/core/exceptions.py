@@ -69,3 +69,13 @@ class InvalidFaceVectorError(BaseAPIError):
 class FaceVectorLimitExceededError(BaseAPIError):
     status_code = 422
     detail = "Face vector limit reached (max 100 per user)"
+
+
+class DoorNotFoundError(BaseAPIError):
+    status_code = 404
+    detail = "Door not found"
+
+
+class DoorNameAlreadyExistsError(BaseAPIError):
+    status_code = 400
+    detail = "Door name already in use"
