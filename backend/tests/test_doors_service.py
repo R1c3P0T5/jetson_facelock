@@ -3,7 +3,11 @@ from uuid import uuid4
 import pytest
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.core.exceptions import DoorNameAlreadyExistsError, DoorNotFoundError
+from src.core.exceptions import (
+    DoorMqttIdAlreadyExistsError,
+    DoorNameAlreadyExistsError,
+    DoorNotFoundError,
+)
 from src.doors.models import Door
 from src.doors.schemas import DoorCreateRequest, DoorUpdateRequest
 
@@ -12,11 +16,14 @@ async def _create_door(
     session: AsyncSession,
     *,
     name: str | None = None,
+    mqtt_id: str | None = None,
     location: str | None = None,
     is_active: bool = True,
 ) -> Door:
+    _name = name or f"door_{uuid4().hex[:12]}"
     door = Door(
-        name=name or f"door_{uuid4().hex[:12]}",
+        name=_name,
+        mqtt_id=mqtt_id or _name.lower().replace(" ", "-"),
         location=location,
         is_active=is_active,
     )
@@ -83,11 +90,14 @@ async def test_create_door_persists_and_returns_door(
 ) -> None:
     from src.doors.service import create_door
 
-    req = DoorCreateRequest(name="Front Gate", location="North Wing")
+    req = DoorCreateRequest(
+        name="Front Gate", mqtt_id="front-gate", location="North Wing"
+    )
 
     door = await create_door(req, database_session)
 
     assert door.name == "Front Gate"
+    assert door.mqtt_id == "front-gate"
     assert door.location == "North Wing"
     assert door.is_active is True
     assert door.id is not None
@@ -99,11 +109,26 @@ async def test_create_door_raises_on_duplicate_name(
 ) -> None:
     from src.doors.service import create_door
 
-    await _create_door(database_session, name="Duplicate Door")
+    await _create_door(database_session, name="Duplicate Door", mqtt_id="dup-door")
 
     with pytest.raises(DoorNameAlreadyExistsError):
         await create_door(
-            DoorCreateRequest(name="Duplicate Door"),
+            DoorCreateRequest(name="Duplicate Door", mqtt_id="other-id"),
+            database_session,
+        )
+
+
+@pytest.mark.asyncio
+async def test_create_door_raises_on_duplicate_mqtt_id(
+    database_session: AsyncSession,
+) -> None:
+    from src.doors.service import create_door
+
+    await _create_door(database_session, name="First Door", mqtt_id="shared-id")
+
+    with pytest.raises(DoorMqttIdAlreadyExistsError):
+        await create_door(
+            DoorCreateRequest(name="Second Door", mqtt_id="shared-id"),
             database_session,
         )
 
@@ -141,8 +166,10 @@ async def test_update_door_raises_on_duplicate_name(
 ) -> None:
     from src.doors.service import update_door
 
-    await _create_door(database_session, name="Taken Name")
-    door = await _create_door(database_session, name="Original Name")
+    await _create_door(database_session, name="Taken Name", mqtt_id="taken-name")
+    door = await _create_door(
+        database_session, name="Original Name", mqtt_id="original-name"
+    )
 
     with pytest.raises(DoorNameAlreadyExistsError):
         await update_door(

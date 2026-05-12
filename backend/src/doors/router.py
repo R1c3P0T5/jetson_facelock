@@ -28,6 +28,7 @@ def _to_response(door) -> DoorResponse:
     return DoorResponse(
         id=door.id,
         name=door.name,
+        mqtt_id=door.mqtt_id,
         location=door.location,
         is_active=door.is_active,
         created_at=door.created_at,

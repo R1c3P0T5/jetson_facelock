@@ -79,3 +79,8 @@ class DoorNotFoundError(BaseAPIError):
 class DoorNameAlreadyExistsError(BaseAPIError):
     status_code = 400
     detail = "Door name already in use"
+
+
+class DoorMqttIdAlreadyExistsError(BaseAPIError):
+    status_code = 400
+    detail = "Door MQTT ID already in use"
