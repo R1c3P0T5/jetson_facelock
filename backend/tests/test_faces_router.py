@@ -13,6 +13,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from src.auth.utils import create_access_token, hash_password
 from src.core.database import get_session
 from src.faces.engine import get_engine
+from src.faces.service import add_face_vector
 from src.users.models import User, UserRole
 
 MOCK_EMBEDDING = np.random.default_rng(42).random(128, dtype=np.float32).tobytes()
@@ -333,3 +334,49 @@ async def test_from_image_register_with_face_stores_embedding(
     assert data["embedding_size"] == 512
     assert data["id"]
     assert data["created_at"]
+
+
+@pytest.mark.asyncio
+async def test_recognize_from_image_no_face_returns_400(
+    client: AsyncClient,
+) -> None:
+    response = await client.post(
+        "/api/faces/recognize/from-image",
+        files={"image": ("frame.jpg", _make_jpeg_bytes(), "image/jpeg")},
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "No face detected in the provided image"
+
+
+@pytest.mark.asyncio
+async def test_recognize_from_image_requires_no_auth(
+    client_with_face: AsyncClient,
+) -> None:
+    response = await client_with_face.post(
+        "/api/faces/recognize/from-image",
+        files={"image": ("frame.jpg", _make_jpeg_bytes(), "image/jpeg")},
+    )
+
+    assert response.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_recognize_from_image_matched(
+    client_with_face: AsyncClient,
+    database_session: AsyncSession,
+) -> None:
+    user, _ = await _create_user_with_token(database_session)
+    await add_face_vector(user.id, MOCK_EMBEDDING, "正面", database_session)
+
+    response = await client_with_face.post(
+        "/api/faces/recognize/from-image",
+        files={"image": ("frame.jpg", _make_jpeg_bytes(), "image/jpeg")},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["matched"] is True
+    assert data["user_id"] == str(user.id)
+    assert data["username"] == user.username
+    assert data["confidence"] == pytest.approx(1.0, abs=1e-5)
