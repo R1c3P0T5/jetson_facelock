@@ -11,13 +11,17 @@ if __package__ is None or __package__ == "":
     sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 from scripts.yunet_sface.detector import FaceDetector
+from scripts.yunet_sface.model_files import (
+    DEFAULT_DETECTOR_MODEL,
+    DEFAULT_RECOGNIZER_MODEL,
+    missing_model_paths,
+    model_setup_hint,
+)
 from scripts.yunet_sface.recognizer import FaceRecognizer, cosine
 from scripts.yunet_sface.store import EmbeddingStore
 
 
 ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_DETECTOR_MODEL = ROOT / "scripts/models/face_detection_yunet_2023mar.onnx"
-DEFAULT_RECOGNIZER_MODEL = ROOT / "scripts/models/face_recognition_sface_2021dec.onnx"
 DEFAULT_STORE = ROOT / "scripts/yunet_sface/store.pkl"
 
 
@@ -54,6 +58,11 @@ def draw_face(frame: np.ndarray, face: np.ndarray, label: str, color: tuple[int,
 
 def main() -> int:
     args = parse_args()
+    missing_models = missing_model_paths([args.detector_model, args.recognizer_model])
+    if missing_models:
+        print(model_setup_hint(missing_models), file=sys.stderr)
+        return 1
+
     detector = FaceDetector(args.detector_model)
     recognizer = FaceRecognizer(args.recognizer_model)
     store = EmbeddingStore(args.store)

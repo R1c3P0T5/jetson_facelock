@@ -6,7 +6,13 @@ registration and recognition.
 
 ## Local Model Files
 
-Place the OpenCV ONNX model files here before running the scripts:
+Download the OpenCV ONNX model files before running the scripts:
+
+```bash
+bash scripts/download-face-models.sh
+```
+
+The script places these files under `scripts/models/`:
 
 ```text
 scripts/models/face_detection_yunet_2023mar.onnx
