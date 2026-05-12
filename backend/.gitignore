@@ -211,6 +211,10 @@ tempCodeRunnerFile.py
 # Local databases
 *.db
 
+# Face recognition model artifacts
+models/*.onnx
+models/*.tmp
+
 # PyPI configuration file
 .pypirc
 
