@@ -1,18 +1,32 @@
 import base64
+from collections.abc import AsyncGenerator
+from unittest.mock import MagicMock
 from uuid import uuid4
 
+import cv2
 import numpy as np
 import pytest
-from httpx import AsyncClient
+import pytest_asyncio
+from httpx import ASGITransport, AsyncClient
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.auth.utils import create_access_token, hash_password
+from src.core.database import get_session
+from src.faces.engine import get_engine
 from src.users.models import User, UserRole
+
+MOCK_EMBEDDING = np.random.default_rng(42).random(128, dtype=np.float32).tobytes()
 
 
 def _make_b64_embedding(seed: int = 0) -> str:
     embedding = np.random.default_rng(seed).random(128, dtype=np.float32)
     return base64.b64encode(embedding.tobytes()).decode()
+
+
+def _make_jpeg_bytes() -> bytes:
+    img = np.zeros((10, 10, 3), dtype=np.uint8)
+    _, encoded = cv2.imencode(".jpg", img)
+    return encoded.tobytes()
 
 
 async def _create_user_with_token(
@@ -36,6 +50,30 @@ async def _create_user_with_token(
 
 def _auth_headers(token: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {token}"}
+
+
+@pytest_asyncio.fixture
+async def client_with_face(
+    database_session: AsyncSession,
+) -> AsyncGenerator[AsyncClient, None]:
+    from main import app
+
+    engine = MagicMock()
+    engine.detect_and_embed.return_value = MOCK_EMBEDDING
+
+    async def override_get_session() -> AsyncGenerator[AsyncSession, None]:
+        yield database_session
+
+    app.dependency_overrides[get_session] = override_get_session
+    app.dependency_overrides[get_engine] = lambda: engine
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://testserver",
+    ) as async_client:
+        yield async_client
+
+    app.dependency_overrides.clear()
 
 
 @pytest.mark.asyncio
@@ -241,3 +279,57 @@ async def test_recognize_rejects_invalid_embedding(
     )
 
     assert response.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_from_image_register_no_face_returns_400(
+    client: AsyncClient,
+    database_session: AsyncSession,
+) -> None:
+    user, token = await _create_user_with_token(database_session)
+
+    response = await client.post(
+        f"/api/users/{user.id}/faces/from-image",
+        files={"image": ("face.jpg", _make_jpeg_bytes(), "image/jpeg")},
+        headers=_auth_headers(token),
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "No face detected in the provided image"
+
+
+@pytest.mark.asyncio
+async def test_from_image_register_invalid_image_returns_400(
+    client: AsyncClient,
+    database_session: AsyncSession,
+) -> None:
+    user, token = await _create_user_with_token(database_session)
+
+    response = await client.post(
+        f"/api/users/{user.id}/faces/from-image",
+        files={"image": ("face.jpg", b"not an image", "image/jpeg")},
+        headers=_auth_headers(token),
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Could not decode the provided image"
+
+
+@pytest.mark.asyncio
+async def test_from_image_register_with_face_stores_embedding(
+    client_with_face: AsyncClient,
+    database_session: AsyncSession,
+) -> None:
+    user, token = await _create_user_with_token(database_session)
+
+    response = await client_with_face.post(
+        f"/api/users/{user.id}/faces/from-image",
+        files={"image": ("face.jpg", _make_jpeg_bytes(), "image/jpeg")},
+        headers=_auth_headers(token),
+    )
+
+    assert response.status_code == 201
+    data = response.json()
+    assert data["embedding_size"] == 512
+    assert data["id"]
+    assert data["created_at"]
