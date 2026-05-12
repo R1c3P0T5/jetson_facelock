@@ -74,3 +74,18 @@ class NoFaceDetectedError(BaseAPIError):
 class InvalidImageError(BaseAPIError):
     status_code = 400
     detail = "Could not decode the provided image"
+
+
+class DoorNotFoundError(BaseAPIError):
+    status_code = 404
+    detail = "Door not found"
+
+
+class DoorNameAlreadyExistsError(BaseAPIError):
+    status_code = 400
+    detail = "Door name already in use"
+
+
+class DoorMqttIdAlreadyExistsError(BaseAPIError):
+    status_code = 400
+    detail = "Door MQTT ID already in use"

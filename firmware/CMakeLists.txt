@@ -56,6 +56,13 @@ target_include_directories(main PRIVATE
 # Add any user requested libraries
 target_link_libraries(main
         pico_cyw43_arch_lwip_threadsafe_background
+        pico_lwip_mqtt
+        pico_lwip_mbedtls
+        pico_mbedtls
         )
+
+# lwIP MQTT does not expose an ALTCP allocator hook, so wrap TLS PCB creation
+# to set SNI before altcp_connect() starts the TLS session.
+target_link_options(main PRIVATE "-Wl,--wrap=altcp_tls_new")
 
 pico_add_extra_outputs(main)
