@@ -6,8 +6,13 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.core.exceptions import FaceVectorNotFoundError
 from src.faces.models import FaceVector
-from src.faces.schemas import EMBEDDING_BYTES
-from src.faces.service import add_face_vector, delete_face_vector, list_face_vectors
+from src.faces.schemas import EMBEDDING_BYTES, RecognizeResponse
+from src.faces.service import (
+    add_face_vector,
+    delete_face_vector,
+    list_face_vectors,
+    recognize_face_vector,
+)
 from src.users.models import User, UserRole
 
 
@@ -115,3 +120,51 @@ async def test_delete_nonexistent_face_vector_raises(
 
     with pytest.raises(FaceVectorNotFoundError):
         await delete_face_vector(uuid4(), user.id, database_session)
+
+
+@pytest.mark.asyncio
+async def test_recognize_face_vector_empty_db_returns_unmatched(
+    database_session: AsyncSession,
+) -> None:
+    query = np.ones(128, dtype=np.float32).tobytes()
+
+    result = await recognize_face_vector(query, database_session, threshold=0.363)
+
+    assert isinstance(result, RecognizeResponse)
+    assert result.matched is False
+    assert result.confidence == 0.0
+    assert result.user_id is None
+    assert result.username is None
+
+
+@pytest.mark.asyncio
+async def test_recognize_face_vector_exact_match_returns_matched(
+    database_session: AsyncSession,
+) -> None:
+    user = await _create_user(database_session)
+    embedding = np.random.default_rng(42).random(128, dtype=np.float32).tobytes()
+    await add_face_vector(user.id, embedding, "正面", database_session)
+
+    result = await recognize_face_vector(embedding, database_session, threshold=0.363)
+
+    assert result.matched is True
+    assert result.user_id == user.id
+    assert result.username == user.username
+    assert result.confidence == pytest.approx(1.0, abs=1e-5)
+
+
+@pytest.mark.asyncio
+async def test_recognize_face_vector_below_threshold_returns_unmatched(
+    database_session: AsyncSession,
+) -> None:
+    user = await _create_user(database_session)
+    stored_arr = (np.ones(128, dtype=np.float32) / np.float32(np.sqrt(128))).astype(
+        np.float32
+    )
+    await add_face_vector(user.id, stored_arr.tobytes(), "正面", database_session)
+    query = (-stored_arr).tobytes()
+
+    result = await recognize_face_vector(query, database_session, threshold=0.363)
+
+    assert result.matched is False
+    assert result.confidence < 0.363
