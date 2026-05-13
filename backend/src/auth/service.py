@@ -14,6 +14,8 @@ from src.core.exceptions import (
     EmailAlreadyInUseError,
     InactiveUserError,
     InvalidCredentialsError,
+    PendingApprovalError,
+    RejectedApprovalError,
     UsernameAlreadyExistsError,
 )
 from src.users.models import User, UserRole, UserStatus
@@ -100,10 +102,16 @@ async def authenticate_user(
     if user is None:
         raise InvalidCredentialsError()
 
+    if not verify_password(request.password, user.password_hash):
+        raise InvalidCredentialsError()
+
     if not user.is_active:
         raise InactiveUserError()
 
-    if not verify_password(request.password, user.password_hash):
-        raise InvalidCredentialsError()
+    if user.status == UserStatus.PENDING:
+        raise PendingApprovalError()
+
+    if user.status == UserStatus.REJECTED:
+        raise RejectedApprovalError()
 
     return user, create_access_token(user.id)

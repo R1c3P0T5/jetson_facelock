@@ -13,7 +13,7 @@ from src.auth.utils import create_access_token, hash_password
 from src.core.database import get_session
 from src.faces.engine import get_engine
 from src.faces.service import add_face_vector
-from src.users.models import User, UserRole
+from src.users.models import User, UserRole, UserStatus
 
 MOCK_EMBEDDING = np.random.default_rng(42).random(128, dtype=np.float32).tobytes()
 
@@ -35,6 +35,7 @@ async def _create_user_with_token(
         password_hash=hash_password("Pass123!"),
         full_name="Face Router User",
         role=role,
+        status=UserStatus.APPROVED,
         is_active=True,
     )
     session.add(user)

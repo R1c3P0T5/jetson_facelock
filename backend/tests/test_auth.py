@@ -2,7 +2,7 @@ import pytest
 from httpx import AsyncClient
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.users.models import User
+from src.users.models import User, UserStatus
 
 
 @pytest.mark.asyncio
@@ -23,6 +23,7 @@ async def test_register_success(client: AsyncClient) -> None:
     assert data["email"] == "newuser@example.com"
     assert data["full_name"] == "New User"
     assert data["role"] == "user"
+    assert data["status"] == "pending"
     assert "password" not in data
     assert "password_hash" not in data
 
@@ -74,6 +75,7 @@ async def test_login_success(
     assert data["token_type"] == "bearer"
     assert data["access_token"]
     assert data["user"]["username"] == test_user.username
+    assert data["user"]["status"] == "approved"
 
 
 @pytest.mark.asyncio
@@ -81,6 +83,63 @@ async def test_login_invalid_password(
     client: AsyncClient,
     test_user: User,
 ) -> None:
+    response = await client.post(
+        "/api/auth/login",
+        json={"username": test_user.username, "password": "WrongPassword123"},
+    )
+
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Invalid username or password"
+
+
+@pytest.mark.asyncio
+async def test_login_pending_user_returns_pending_approval_label(
+    client: AsyncClient,
+    database_session: AsyncSession,
+    test_user: User,
+) -> None:
+    test_user.status = UserStatus.PENDING
+    database_session.add(test_user)
+    await database_session.commit()
+
+    response = await client.post(
+        "/api/auth/login",
+        json={"username": test_user.username, "password": "TestPassword123"},
+    )
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == "approval_pending"
+
+
+@pytest.mark.asyncio
+async def test_login_rejected_user_returns_forbidden_without_pending_label(
+    client: AsyncClient,
+    database_session: AsyncSession,
+    test_user: User,
+) -> None:
+    test_user.status = UserStatus.REJECTED
+    database_session.add(test_user)
+    await database_session.commit()
+
+    response = await client.post(
+        "/api/auth/login",
+        json={"username": test_user.username, "password": "TestPassword123"},
+    )
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == "User account approval was rejected"
+
+
+@pytest.mark.asyncio
+async def test_login_pending_user_with_wrong_password_returns_invalid_credentials(
+    client: AsyncClient,
+    database_session: AsyncSession,
+    test_user: User,
+) -> None:
+    test_user.status = UserStatus.PENDING
+    database_session.add(test_user)
+    await database_session.commit()
+
     response = await client.post(
         "/api/auth/login",
         json={"username": test_user.username, "password": "WrongPassword123"},

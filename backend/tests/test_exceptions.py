@@ -7,7 +7,9 @@ from src.core.exceptions import (
     InvalidCredentialsError,
     InvalidTokenError,
     PasswordValidationError,
+    PendingApprovalError,
     PermissionDeniedError,
+    RejectedApprovalError,
     UserNotFoundError,
     UsernameAlreadyExistsError,
 )
@@ -20,6 +22,12 @@ def test_api_errors_have_expected_default_status_codes_and_details() -> None:
         (EmailAlreadyInUseError(), 400, "Email already in use"),
         (InvalidCredentialsError(), 401, "Invalid username or password"),
         (InactiveUserError(), 403, "User account is disabled"),
+        (PendingApprovalError(), 403, "approval_pending"),
+        (
+            RejectedApprovalError(),
+            403,
+            "User account approval was rejected",
+        ),
         (PermissionDeniedError(), 403, "Permission denied"),
         (
             PasswordValidationError(),

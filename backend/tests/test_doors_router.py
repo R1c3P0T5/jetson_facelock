@@ -7,7 +7,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.auth.utils import create_access_token, hash_password
 from src.doors.models import Door
-from src.users.models import User, UserRole
+from src.users.models import User, UserRole, UserStatus
 
 
 async def _create_admin_with_token(session: AsyncSession) -> tuple[User, str]:
@@ -17,6 +17,7 @@ async def _create_admin_with_token(session: AsyncSession) -> tuple[User, str]:
         password_hash=hash_password("AdminPass123!"),
         full_name="Admin User",
         role=UserRole.ADMIN,
+        status=UserStatus.APPROVED,
         is_active=True,
     )
     session.add(admin)

@@ -13,7 +13,7 @@ from src.core.exceptions import (
     InvalidTokenError,
     PermissionDeniedError,
 )
-from src.users.models import User, UserRole
+from src.users.models import User, UserRole, UserStatus
 
 
 @pytest_asyncio.fixture
@@ -48,6 +48,7 @@ async def test_get_current_user_returns_active_user_from_valid_token(
         username=f"user_{uuid4().hex}",
         password_hash="hash",
         full_name="John Doe",
+        status=UserStatus.APPROVED,
     )
     database_session.add(user)
     await database_session.commit()
@@ -90,6 +91,28 @@ async def test_get_current_user_rejects_inactive_user(
     token = create_access_token(user.id)
 
     with pytest.raises(InactiveUserError):
+        await get_current_user(token, database_session)
+
+
+@pytest.mark.asyncio
+async def test_get_current_user_rejects_unapproved_user(
+    database_session: AsyncSession,
+) -> None:
+    from src.auth.dependencies import get_current_user
+
+    user = User(
+        username=f"pending_{uuid4().hex}",
+        password_hash="hash",
+        full_name="Pending User",
+        status=UserStatus.PENDING,
+    )
+    database_session.add(user)
+    await database_session.commit()
+    await database_session.refresh(user)
+
+    token = create_access_token(user.id)
+
+    with pytest.raises(PermissionDeniedError):
         await get_current_user(token, database_session)
 
 
