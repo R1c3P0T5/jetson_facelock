@@ -3,7 +3,7 @@ from httpx import AsyncClient
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.users.models import User, UserRole
+from src.users.models import User, UserRole, UserStatus
 
 
 @pytest.mark.asyncio
@@ -24,6 +24,7 @@ async def test_test_user_fixture_persists_regular_user(
     assert persisted_user is not None
     assert persisted_user.username == "testuser"
     assert persisted_user.role == UserRole.USER
+    assert persisted_user.status == UserStatus.APPROVED
     assert persisted_user.is_active is True
     assert persisted_user.password_hash != "TestPassword123"
 
@@ -38,6 +39,7 @@ async def test_test_admin_fixture_persists_admin_user(
     assert persisted_admin is not None
     assert persisted_admin.username == "admin"
     assert persisted_admin.role == UserRole.ADMIN
+    assert persisted_admin.status == UserStatus.APPROVED
     assert persisted_admin.is_active is True
 
 

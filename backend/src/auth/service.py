@@ -16,7 +16,7 @@ from src.core.exceptions import (
     InvalidCredentialsError,
     UsernameAlreadyExistsError,
 )
-from src.users.models import User, UserRole
+from src.users.models import User, UserRole, UserStatus
 
 
 async def ensure_default_admin(
@@ -49,6 +49,7 @@ async def ensure_default_admin(
         password_hash=hash_password(settings.DEFAULT_ADMIN_PASSWORD),
         full_name=settings.DEFAULT_ADMIN_FULL_NAME or settings.DEFAULT_ADMIN_USERNAME,
         role=UserRole.ADMIN,
+        status=UserStatus.APPROVED,
         is_active=True,
     )
     session.add(admin)

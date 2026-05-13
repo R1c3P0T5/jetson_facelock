@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import uuid4
 
-from src.users.models import UserRole
+from src.users.models import UserRole, UserStatus
 
 import pytest
 from pydantic import ValidationError
@@ -40,6 +40,7 @@ def test_login_response_defaults_token_type_to_bearer() -> None:
         username="john_doe",
         full_name="John Doe",
         role=UserRole.USER,
+        status=UserStatus.APPROVED,
         is_active=True,
         created_at=datetime.now(),
     )
@@ -48,3 +49,4 @@ def test_login_response_defaults_token_type_to_bearer() -> None:
 
     assert response.token_type == "bearer"
     assert response.user.username == "john_doe"
+    assert response.user.status == UserStatus.APPROVED

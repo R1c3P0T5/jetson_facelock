@@ -3,7 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
-from src.users.models import UserRole
+from src.users.models import UserRole, UserStatus
 
 
 class UserUpdateRequest(BaseModel):
@@ -30,6 +30,7 @@ class UserResponseFull(BaseModel):
     email: str | None = Field(default=None, description="Optional email address.")
     full_name: str = Field(description="Human-readable display name.")
     role: UserRole = Field(description="Authorization role assigned to the user.")
+    status: UserStatus = Field(description="Administrative approval status.")
     is_active: bool = Field(description="Whether the account can authenticate.")
     created_at: datetime = Field(description="UTC timestamp when the user was created.")
     updated_at: datetime = Field(

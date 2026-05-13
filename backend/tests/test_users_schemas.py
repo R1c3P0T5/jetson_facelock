@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import uuid4
 
-from src.users.models import UserRole
+from src.users.models import UserRole, UserStatus
 
 
 def test_user_update_request_allows_partial_profile_update() -> None:
@@ -22,6 +22,7 @@ def test_user_list_response_wraps_users_and_pagination() -> None:
         email="admin@example.com",
         full_name="Admin User",
         role=UserRole.ADMIN,
+        status=UserStatus.APPROVED,
         is_active=True,
         created_at=datetime.now(),
         updated_at=datetime.now(),
@@ -31,3 +32,4 @@ def test_user_list_response_wraps_users_and_pagination() -> None:
 
     assert response.total == 1
     assert response.users[0].role == UserRole.ADMIN
+    assert response.users[0].status == UserStatus.APPROVED

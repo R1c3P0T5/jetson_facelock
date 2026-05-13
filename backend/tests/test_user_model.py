@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID, uuid4
 
-from src.users.models import User
+from src.users.models import User, UserStatus
 
 
 def test_user_model_defaults_and_required_fields() -> None:
@@ -17,6 +17,7 @@ def test_user_model_defaults_and_required_fields() -> None:
     assert user.username == "testuser"
     assert user.email is None
     assert user.role == "user"
+    assert user.status == UserStatus.PENDING
     assert user.is_active is True
     assert isinstance(user.created_at, datetime)
     assert isinstance(user.updated_at, datetime)
@@ -33,6 +34,7 @@ def test_user_table_has_expected_columns_and_constraints() -> None:
         "password_hash",
         "full_name",
         "role",
+        "status",
         "is_active",
         "created_at",
         "updated_at",

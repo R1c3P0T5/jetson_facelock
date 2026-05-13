@@ -30,6 +30,7 @@ def _full_user_response(user: User) -> UserResponseFull:
         email=user.email,
         full_name=user.full_name,
         role=user.role,
+        status=user.status,
         is_active=user.is_active,
         created_at=user.created_at,
         updated_at=user.updated_at,
