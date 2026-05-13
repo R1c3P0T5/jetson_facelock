@@ -19,7 +19,7 @@ from starlette.websockets import WebSocketDisconnect
 from src.auth.dependencies import get_current_user
 from src.core.access import require_self_or_admin
 from src.core.config import get_settings
-from src.core.database import SessionDep
+from src.core.database import SessionDep, session_context
 from src.core.exceptions import (
     InvalidImageError,
     NoFaceDetectedError,
@@ -178,7 +178,6 @@ async def recognize_face_from_image(
 @router.websocket("/ws/faces/recognize")
 async def recognize_faces_websocket(
     websocket: WebSocket,
-    session: SessionDep,
     engine: EngineDep,
 ) -> None:
     await websocket.accept()
@@ -199,7 +198,8 @@ async def recognize_faces_websocket(
                 continue
 
             try:
-                response = await _recognize_image_bytes(data, session, engine)
+                async with session_context() as session:
+                    response = await _recognize_image_bytes(data, session, engine)
             except InvalidImageError as exc:
                 await websocket.send_json(_websocket_error("invalid_image", exc.detail))
             except NoFaceDetectedError as exc:
