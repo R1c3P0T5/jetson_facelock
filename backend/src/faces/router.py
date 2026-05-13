@@ -3,8 +3,18 @@ from uuid import UUID
 
 import cv2
 import numpy as np
-from fastapi import APIRouter, Depends, Form, Path, Query, UploadFile, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    Form,
+    Path,
+    Query,
+    UploadFile,
+    WebSocket,
+    status,
+)
 from sqlmodel.ext.asyncio.session import AsyncSession
+from starlette.websockets import WebSocketDisconnect
 
 from src.auth.dependencies import get_current_user
 from src.core.access import require_self_or_admin
@@ -65,6 +75,10 @@ async def _recognize_image_bytes(
         session,
         get_settings().COSINE_THRESHOLD,
     )
+
+
+def _websocket_error(error: str, detail: str) -> dict[str, str]:
+    return {"error": error, "detail": detail}
 
 
 @router.get(
@@ -159,3 +173,46 @@ async def recognize_face_from_image(
     engine: EngineDep,
 ) -> RecognizeResponse:
     return await _recognize_image_bytes(await image.read(), session, engine)
+
+
+@router.websocket("/ws/faces/recognize")
+async def recognize_faces_websocket(
+    websocket: WebSocket,
+    session: SessionDep,
+    engine: EngineDep,
+) -> None:
+    await websocket.accept()
+    try:
+        while True:
+            message = await websocket.receive()
+            if message["type"] == "websocket.disconnect":
+                break
+
+            data = message.get("bytes")
+            if data is None:
+                await websocket.send_json(
+                    _websocket_error(
+                        "unsupported_message",
+                        "Send image frames as binary WebSocket messages",
+                    )
+                )
+                continue
+
+            try:
+                response = await _recognize_image_bytes(data, session, engine)
+            except InvalidImageError as exc:
+                await websocket.send_json(_websocket_error("invalid_image", exc.detail))
+            except NoFaceDetectedError as exc:
+                await websocket.send_json(
+                    {
+                        "matched": False,
+                        "user_id": None,
+                        "username": None,
+                        "confidence": 0.0,
+                        "detail": exc.detail,
+                    }
+                )
+            else:
+                await websocket.send_json(response.model_dump(mode="json"))
+    except WebSocketDisconnect:
+        return
