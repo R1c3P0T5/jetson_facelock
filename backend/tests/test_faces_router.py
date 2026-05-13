@@ -6,6 +6,7 @@ import cv2
 import numpy as np
 import pytest
 import pytest_asyncio
+from fastapi.testclient import TestClient
 from httpx import ASGITransport, AsyncClient
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -67,6 +68,44 @@ async def client_with_face(
         base_url="http://testserver",
     ) as async_client:
         yield async_client
+
+    app.dependency_overrides.clear()
+
+
+@pytest_asyncio.fixture
+async def websocket_client(
+    database_session: AsyncSession,
+) -> AsyncGenerator[TestClient, None]:
+    from main import app
+
+    async def override_get_session() -> AsyncGenerator[AsyncSession, None]:
+        yield database_session
+
+    app.dependency_overrides[get_session] = override_get_session
+
+    with TestClient(app) as test_client:
+        yield test_client
+
+    app.dependency_overrides.clear()
+
+
+@pytest_asyncio.fixture
+async def websocket_client_with_face(
+    database_session: AsyncSession,
+) -> AsyncGenerator[TestClient, None]:
+    from main import app
+
+    engine = MagicMock()
+    engine.detect_and_embed.return_value = MOCK_EMBEDDING
+
+    async def override_get_session() -> AsyncGenerator[AsyncSession, None]:
+        yield database_session
+
+    app.dependency_overrides[get_session] = override_get_session
+    app.dependency_overrides[get_engine] = lambda: engine
+
+    with TestClient(app) as test_client:
+        yield test_client
 
     app.dependency_overrides.clear()
 
@@ -275,3 +314,80 @@ async def test_recognize_from_image_matched(
     assert data["user_id"] == str(user.id)
     assert data["username"] == user.username
     assert data["confidence"] == pytest.approx(1.0, abs=1e-5)
+
+
+@pytest.mark.asyncio
+async def test_recognize_websocket_matched(
+    websocket_client_with_face: TestClient,
+    database_session: AsyncSession,
+) -> None:
+    user, _ = await _create_user_with_token(database_session)
+    await add_face_vector(user.id, MOCK_EMBEDDING, "正面", database_session)
+
+    with websocket_client_with_face.websocket_connect("/ws/faces/recognize") as ws:
+        ws.send_bytes(_make_jpeg_bytes())
+        data = ws.receive_json()
+
+    assert data["matched"] is True
+    assert data["user_id"] == str(user.id)
+    assert data["username"] == user.username
+    assert data["confidence"] == pytest.approx(1.0, abs=1e-5)
+
+
+@pytest.mark.asyncio
+async def test_recognize_websocket_no_face_keeps_connection(
+    websocket_client: TestClient,
+) -> None:
+    with websocket_client.websocket_connect("/ws/faces/recognize") as ws:
+        ws.send_bytes(_make_jpeg_bytes())
+        no_face = ws.receive_json()
+        ws.send_text("not binary")
+        unsupported = ws.receive_json()
+
+    assert no_face == {
+        "matched": False,
+        "user_id": None,
+        "username": None,
+        "confidence": 0.0,
+        "detail": "No face detected in the provided image",
+    }
+    assert unsupported == {
+        "error": "unsupported_message",
+        "detail": "Send image frames as binary WebSocket messages",
+    }
+
+
+@pytest.mark.asyncio
+async def test_recognize_websocket_invalid_image_keeps_connection(
+    websocket_client_with_face: TestClient,
+) -> None:
+    with websocket_client_with_face.websocket_connect("/ws/faces/recognize") as ws:
+        ws.send_bytes(b"not an image")
+        invalid = ws.receive_json()
+        ws.send_text("not binary")
+        unsupported = ws.receive_json()
+
+    assert invalid == {
+        "error": "invalid_image",
+        "detail": "Could not decode the provided image",
+    }
+    assert unsupported["error"] == "unsupported_message"
+
+
+@pytest.mark.asyncio
+async def test_recognize_websocket_handles_multiple_frames(
+    websocket_client_with_face: TestClient,
+    database_session: AsyncSession,
+) -> None:
+    user, _ = await _create_user_with_token(database_session)
+    await add_face_vector(user.id, MOCK_EMBEDDING, "正面", database_session)
+
+    with websocket_client_with_face.websocket_connect("/ws/faces/recognize") as ws:
+        ws.send_bytes(_make_jpeg_bytes())
+        first = ws.receive_json()
+        ws.send_bytes(_make_jpeg_bytes())
+        second = ws.receive_json()
+
+    assert first["matched"] is True
+    assert second["matched"] is True
+    assert first["user_id"] == second["user_id"] == str(user.id)
