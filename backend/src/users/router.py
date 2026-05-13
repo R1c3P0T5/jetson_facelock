@@ -6,16 +6,18 @@ from fastapi import APIRouter, Depends, Path, Query, status
 from src.auth.dependencies import get_admin_user, get_current_user
 from src.auth.schemas import UserResponse
 from src.core.database import SessionDep
-from src.users.models import User
+from src.users.models import User, UserStatus
 from src.users.schemas import (
     UserListResponse,
     UserResponseFull,
     UserUpdateRequest,
 )
 from src.users.service import (
+    approve_user,
     delete_user,
     get_user_by_id,
     list_users,
+    reject_user,
     update_user,
 )
 
@@ -42,10 +44,11 @@ def _full_user_response(user: User) -> UserResponseFull:
     response_model=UserListResponse,
     summary="List users",
     description=(
-        "Return a paginated list of users. This operation is restricted to "
-        "administrators because it exposes account metadata for multiple users."
+        "Return a paginated list of users. Pass ?status= to filter by approval "
+        "status. This operation is restricted to administrators because it exposes "
+        "account metadata for multiple users."
     ),
-    response_description="Paginated users with total count and face embedding sizes.",
+    response_description="Paginated users with total count.",
 )
 async def list_users_endpoint(
     session: SessionDep,
@@ -65,14 +68,48 @@ async def list_users_endpoint(
             description="Maximum number of users to return.",
         ),
     ] = 10,
+    status: Annotated[
+        UserStatus | None,
+        Query(description="Filter users by approval status."),
+    ] = None,
 ) -> UserListResponse:
-    total, users = await list_users(session, skip=skip, limit=limit)
+    total, users = await list_users(session, skip=skip, limit=limit, status=status)
     return UserListResponse(
         total=total,
         skip=skip,
         limit=limit,
         users=[_full_user_response(user) for user in users],
     )
+
+
+@router.post(
+    "/{user_id}/approve",
+    response_model=UserResponseFull,
+    summary="Approve user",
+    description="Approve a pending user account so it can authenticate.",
+    response_description="The approved user profile.",
+)
+async def approve_user_endpoint(
+    user_id: Annotated[UUID, Path(description="User ID to approve.")],
+    session: SessionDep,
+    current_user: Annotated[User, Depends(get_admin_user)],
+) -> UserResponseFull:
+    return _full_user_response(await approve_user(user_id, session))
+
+
+@router.post(
+    "/{user_id}/reject",
+    response_model=UserResponseFull,
+    summary="Reject user",
+    description="Reject a pending user account so login remains forbidden.",
+    response_description="The rejected user profile.",
+)
+async def reject_user_endpoint(
+    user_id: Annotated[UUID, Path(description="User ID to reject.")],
+    session: SessionDep,
+    current_user: Annotated[User, Depends(get_admin_user)],
+) -> UserResponseFull:
+    return _full_user_response(await reject_user(user_id, session))
 
 
 @router.get(

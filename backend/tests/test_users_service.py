@@ -8,7 +8,7 @@ from src.core.exceptions import (
     PermissionDeniedError,
     UserNotFoundError,
 )
-from src.users.models import User, UserRole
+from src.users.models import User, UserRole, UserStatus
 from src.users.schemas import UserUpdateRequest
 
 
@@ -18,6 +18,7 @@ async def create_user(
     username: str | None = None,
     email: str | None = None,
     role: UserRole = UserRole.USER,
+    status: UserStatus = UserStatus.APPROVED,
 ) -> User:
     user = User(
         username=username or f"user_{uuid4().hex[:12]}",
@@ -25,6 +26,7 @@ async def create_user(
         password_hash="hash",
         full_name="Original Name",
         role=role,
+        status=status,
     )
     session.add(user)
     await session.commit()
@@ -155,3 +157,83 @@ async def test_list_users_returns_total_and_paginated_users(
 
     assert total >= 3
     assert created_ids.issubset({user.id for user in users})
+
+
+@pytest.mark.asyncio
+async def test_list_users_filters_by_status(
+    database_session: AsyncSession,
+) -> None:
+    from src.users.service import list_users
+
+    pending_user = await create_user(database_session, status=UserStatus.PENDING)
+    await create_user(database_session, status=UserStatus.APPROVED)
+
+    total, users = await list_users(
+        database_session, skip=0, limit=100, status=UserStatus.PENDING
+    )
+
+    assert total == 1
+    assert users[0].id == pending_user.id
+
+
+@pytest.mark.asyncio
+async def test_approve_user_sets_status_and_updates_timestamp(
+    database_session: AsyncSession,
+) -> None:
+    from src.users.service import approve_user
+
+    user = await create_user(database_session, status=UserStatus.PENDING)
+    original_updated_at = user.updated_at
+
+    result = await approve_user(user.id, database_session)
+
+    assert result.status == UserStatus.APPROVED
+    assert result.updated_at > original_updated_at
+
+
+@pytest.mark.asyncio
+async def test_approve_user_allows_rejected_user_recovery(
+    database_session: AsyncSession,
+) -> None:
+    from src.users.service import approve_user
+
+    user = await create_user(database_session, status=UserStatus.REJECTED)
+
+    result = await approve_user(user.id, database_session)
+
+    assert result.status == UserStatus.APPROVED
+
+
+@pytest.mark.asyncio
+async def test_reject_user_sets_status_and_updates_timestamp(
+    database_session: AsyncSession,
+) -> None:
+    from src.users.service import reject_user
+
+    user = await create_user(database_session, status=UserStatus.PENDING)
+    original_updated_at = user.updated_at
+
+    result = await reject_user(user.id, database_session)
+
+    assert result.status == UserStatus.REJECTED
+    assert result.updated_at > original_updated_at
+
+
+@pytest.mark.asyncio
+async def test_approve_user_rejects_missing_user(
+    database_session: AsyncSession,
+) -> None:
+    from src.users.service import approve_user
+
+    with pytest.raises(UserNotFoundError):
+        await approve_user(uuid4(), database_session)
+
+
+@pytest.mark.asyncio
+async def test_reject_user_rejects_missing_user(
+    database_session: AsyncSession,
+) -> None:
+    from src.users.service import reject_user
+
+    with pytest.raises(UserNotFoundError):
+        await reject_user(uuid4(), database_session)
