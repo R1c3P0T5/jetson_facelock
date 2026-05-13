@@ -74,6 +74,7 @@ async def test_get_user_endpoint_returns_user_response(
 
     assert response.id == user.id
     assert response.username == user.username
+    assert response.status == UserStatus.APPROVED
 
 
 @pytest.mark.asyncio
@@ -119,6 +120,7 @@ async def test_list_users_endpoint_returns_paginated_response(
     assert isinstance(response, UserListResponse)
     assert response.total >= 2
     assert response.limit == 50
+    assert {user.status for user in response.users} == {UserStatus.APPROVED}
 
 
 @pytest.mark.asyncio

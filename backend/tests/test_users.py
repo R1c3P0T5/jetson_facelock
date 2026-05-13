@@ -51,7 +51,9 @@ async def test_get_user(client: AsyncClient, test_user: User) -> None:
     )
 
     assert response.status_code == 200
-    assert response.json()["username"] == test_user.username
+    data = response.json()
+    assert data["username"] == test_user.username
+    assert data["status"] == "approved"
 
 
 @pytest.mark.asyncio
@@ -152,6 +154,7 @@ async def test_list_users_admin_only(
     assert forbidden_response.status_code == 403
     assert allowed_response.status_code == 200
     assert allowed_response.json()["total"] == 2
+    assert {user["status"] for user in allowed_response.json()["users"]} == {"approved"}
 
 
 @pytest.mark.asyncio
@@ -175,6 +178,7 @@ async def test_list_users_pagination(
     assert data["skip"] == 1
     assert data["limit"] == 1
     assert len(data["users"]) == 1
+    assert data["users"][0]["status"] == "approved"
 
 
 @pytest.mark.asyncio
