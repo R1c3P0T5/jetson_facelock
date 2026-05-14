@@ -3,7 +3,7 @@ from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.core.config import Settings
-from src.users.models import User, UserRole
+from src.users.models import User, UserRole, UserStatus
 
 
 @pytest.mark.asyncio
@@ -41,6 +41,7 @@ async def test_ensure_default_admin_creates_admin_from_settings(
         await database_session.exec(select(User).where(User.username == "admin"))
     ).one()
     assert admin.role == UserRole.ADMIN
+    assert admin.status == UserStatus.APPROVED
     assert admin.is_active is True
     assert admin.full_name == "admin"
     assert admin.email == "admin@example.com"

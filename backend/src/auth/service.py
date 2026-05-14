@@ -14,9 +14,11 @@ from src.core.exceptions import (
     EmailAlreadyInUseError,
     InactiveUserError,
     InvalidCredentialsError,
+    PendingApprovalError,
+    RejectedApprovalError,
     UsernameAlreadyExistsError,
 )
-from src.users.models import User, UserRole
+from src.users.models import User, UserRole, UserStatus
 
 
 async def ensure_default_admin(
@@ -49,6 +51,7 @@ async def ensure_default_admin(
         password_hash=hash_password(settings.DEFAULT_ADMIN_PASSWORD),
         full_name=settings.DEFAULT_ADMIN_FULL_NAME or settings.DEFAULT_ADMIN_USERNAME,
         role=UserRole.ADMIN,
+        status=UserStatus.APPROVED,
         is_active=True,
     )
     session.add(admin)
@@ -99,10 +102,16 @@ async def authenticate_user(
     if user is None:
         raise InvalidCredentialsError()
 
+    if not verify_password(request.password, user.password_hash):
+        raise InvalidCredentialsError()
+
     if not user.is_active:
         raise InactiveUserError()
 
-    if not verify_password(request.password, user.password_hash):
-        raise InvalidCredentialsError()
+    if user.status == UserStatus.PENDING:
+        raise PendingApprovalError()
+
+    if user.status == UserStatus.REJECTED:
+        raise RejectedApprovalError()
 
     return user, create_access_token(user.id)

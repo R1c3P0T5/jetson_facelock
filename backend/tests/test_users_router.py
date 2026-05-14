@@ -4,7 +4,7 @@ import pytest
 from fastapi.routing import APIRoute
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.users.models import User, UserRole
+from src.users.models import User, UserRole, UserStatus
 from src.users.schemas import (
     UserListResponse,
     UserUpdateRequest,
@@ -15,6 +15,7 @@ async def create_user(
     session: AsyncSession,
     *,
     role: UserRole = UserRole.USER,
+    status: UserStatus = UserStatus.APPROVED,
 ) -> User:
     user = User(
         username=f"user_{uuid4().hex[:12]}",
@@ -22,6 +23,7 @@ async def create_user(
         password_hash="hash",
         full_name="Router User",
         role=role,
+        status=status,
     )
     session.add(user)
     await session.commit()
@@ -40,6 +42,8 @@ def test_users_router_exposes_expected_routes() -> None:
 
     assert router.prefix == "/api/users"
     assert ("/api/users", ("GET",)) in routes
+    assert ("/api/users/{user_id}/approve", ("POST",)) in routes
+    assert ("/api/users/{user_id}/reject", ("POST",)) in routes
     assert ("/api/users/{user_id}", ("GET",)) in routes
     assert ("/api/users/{user_id}", ("PUT",)) in routes
     assert ("/api/users/{user_id}", ("DELETE",)) in routes
@@ -70,6 +74,7 @@ async def test_get_user_endpoint_returns_user_response(
 
     assert response.id == user.id
     assert response.username == user.username
+    assert response.status == UserStatus.APPROVED
 
 
 @pytest.mark.asyncio
@@ -115,3 +120,54 @@ async def test_list_users_endpoint_returns_paginated_response(
     assert isinstance(response, UserListResponse)
     assert response.total >= 2
     assert response.limit == 50
+    assert {user.status for user in response.users} == {UserStatus.APPROVED}
+
+
+@pytest.mark.asyncio
+async def test_list_users_endpoint_filters_by_status(
+    database_session: AsyncSession,
+) -> None:
+    from src.users.router import list_users_endpoint
+
+    admin = await create_user(database_session, role=UserRole.ADMIN)
+    pending_user = await create_user(database_session, status=UserStatus.PENDING)
+    await create_user(database_session, status=UserStatus.APPROVED)
+
+    response = await list_users_endpoint(
+        database_session, admin, skip=0, limit=50, status=UserStatus.PENDING
+    )
+
+    assert isinstance(response, UserListResponse)
+    assert response.total == 1
+    assert response.users[0].id == pending_user.id
+    assert response.users[0].status == UserStatus.PENDING
+
+
+@pytest.mark.asyncio
+async def test_approve_user_endpoint_returns_approved_response(
+    database_session: AsyncSession,
+) -> None:
+    from src.users.router import approve_user_endpoint
+
+    admin = await create_user(database_session, role=UserRole.ADMIN)
+    pending_user = await create_user(database_session, status=UserStatus.PENDING)
+
+    response = await approve_user_endpoint(pending_user.id, database_session, admin)
+
+    assert response.id == pending_user.id
+    assert response.status == UserStatus.APPROVED
+
+
+@pytest.mark.asyncio
+async def test_reject_user_endpoint_returns_rejected_response(
+    database_session: AsyncSession,
+) -> None:
+    from src.users.router import reject_user_endpoint
+
+    admin = await create_user(database_session, role=UserRole.ADMIN)
+    pending_user = await create_user(database_session, status=UserStatus.PENDING)
+
+    response = await reject_user_endpoint(pending_user.id, database_session, admin)
+
+    assert response.id == pending_user.id
+    assert response.status == UserStatus.REJECTED

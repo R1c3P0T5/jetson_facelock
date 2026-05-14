@@ -11,7 +11,7 @@ from src.core.exceptions import (
     UserNotFoundError,
 )
 from src.core.utils import utc_now_naive
-from src.users.models import User
+from src.users.models import User, UserStatus
 from src.users.schemas import UserUpdateRequest
 
 
@@ -66,8 +66,35 @@ async def list_users(
     session: AsyncSession,
     skip: int = 0,
     limit: int = 10,
+    status: UserStatus | None = None,
 ) -> tuple[int, list[User]]:
-    total = (await session.exec(select(func.count()).select_from(User))).one()
-    users = (await session.exec(select(User).offset(skip).limit(limit))).all()
-
+    count_stmt = select(func.count()).select_from(User)
+    list_stmt = select(User)
+    if status is not None:
+        count_stmt = count_stmt.where(User.status == status)
+        list_stmt = list_stmt.where(User.status == status)
+    total = (await session.exec(count_stmt)).one()
+    users = (await session.exec(list_stmt.offset(skip).limit(limit))).all()
     return total, list(users)
+
+
+async def approve_user(user_id: UUID, session: AsyncSession) -> User:
+    user = await get_user_by_id(user_id, session)
+    user.status = UserStatus.APPROVED
+    user.updated_at = utc_now_naive()
+
+    session.add(user)
+    await session.commit()
+    await session.refresh(user)
+    return user
+
+
+async def reject_user(user_id: UUID, session: AsyncSession) -> User:
+    user = await get_user_by_id(user_id, session)
+    user.status = UserStatus.REJECTED
+    user.updated_at = utc_now_naive()
+
+    session.add(user)
+    await session.commit()
+    await session.refresh(user)
+    return user

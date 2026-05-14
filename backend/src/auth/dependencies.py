@@ -11,7 +11,7 @@ from src.core.exceptions import (
     InvalidTokenError,
     PermissionDeniedError,
 )
-from src.users.models import User, UserRole
+from src.users.models import User, UserRole, UserStatus
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
@@ -43,6 +43,9 @@ async def get_current_user(
 
     if not user.is_active:
         raise InactiveUserError()
+
+    if user.status != UserStatus.APPROVED:
+        raise PermissionDeniedError()
 
     return user
 

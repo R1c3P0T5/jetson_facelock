@@ -5,7 +5,7 @@ from fastapi.routing import APIRoute
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.auth.schemas import LoginResponse, UserRegisterRequest
-from src.users.models import User
+from src.users.models import User, UserStatus
 
 
 def test_auth_router_exposes_expected_routes() -> None:
@@ -55,7 +55,7 @@ async def test_login_endpoint_returns_login_response(
 
     username = f"loginrouter_{uuid4().hex[:8]}"
     password = "MySecurePass123"
-    await register(
+    user = await register(
         UserRegisterRequest(
             username=username,
             password=password,
@@ -63,6 +63,9 @@ async def test_login_endpoint_returns_login_response(
         ),
         database_session,
     )
+    user.status = UserStatus.APPROVED
+    database_session.add(user)
+    await database_session.commit()
 
     response = await login(
         UserLoginRequest(username=username, password=password),

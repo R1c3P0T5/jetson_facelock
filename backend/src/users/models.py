@@ -12,6 +12,12 @@ class UserRole(str, Enum):
     ADMIN = "admin"
 
 
+class UserStatus(str, Enum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+
+
 class User(SQLModel, table=True):
     """User database model for authentication and profile management."""
 
@@ -21,6 +27,7 @@ class User(SQLModel, table=True):
     password_hash: str = Field(nullable=False)
     full_name: str = Field(nullable=False)
     role: UserRole = Field(default=UserRole.USER, nullable=False)
+    status: UserStatus = Field(default=UserStatus.PENDING, nullable=False)
     is_active: bool = Field(default=True, nullable=False)
     created_at: datetime = Field(default_factory=utc_now_naive, nullable=False)
     updated_at: datetime = Field(default_factory=utc_now_naive, nullable=False)

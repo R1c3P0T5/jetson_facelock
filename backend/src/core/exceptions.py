@@ -41,6 +41,16 @@ class InactiveUserError(BaseAPIError):
     detail = "User account is disabled"
 
 
+class PendingApprovalError(BaseAPIError):
+    status_code = 403
+    detail = "approval_pending"
+
+
+class RejectedApprovalError(BaseAPIError):
+    status_code = 403
+    detail = "User account approval was rejected"
+
+
 class PermissionDeniedError(BaseAPIError):
     status_code = 403
     detail = "Permission denied"

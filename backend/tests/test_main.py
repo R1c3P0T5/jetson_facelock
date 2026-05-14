@@ -63,6 +63,8 @@ def test_openapi_docs_include_operation_and_schema_descriptions() -> None:
         ("/api/auth/token", "post"): "Issue OAuth2 access token",
         ("/api/auth/me", "get"): "Get current user",
         ("/api/users", "get"): "List users",
+        ("/api/users/{user_id}/approve", "post"): "Approve user",
+        ("/api/users/{user_id}/reject", "post"): "Reject user",
         ("/api/users/{user_id}", "get"): "Get user profile",
         ("/api/users/{user_id}", "put"): "Update user profile",
         ("/api/users/{user_id}", "delete"): "Delete user",
